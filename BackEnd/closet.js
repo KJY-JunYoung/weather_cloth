@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const env = require("dotenv");
 const path = require("path");
 const dbConnect = require('./config/dbConnect');
+const callAIServer = require("./controllers/testFastApi")
 const app = express();
 
 app.use(express.json());
@@ -14,4 +15,5 @@ dbConnect();
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);
+  callAIServer();
 });
