@@ -10,9 +10,15 @@ const uploadRouter = require("./routes/uploadRoutes");
 const authRouter = require("./routes/authRoutes");
 const cookieParser = require('cookie-parser');
 const verifyToken = require("./middlewares/authMiddleware");
+const cors = require("cors");
 
 const app = express();
 
+app.use(cors({
+  orgin: "http://localhost:5173",
+  // credentials: true
+}))
+// cors 설정
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
@@ -24,6 +30,7 @@ app.use((req, res, next) => {
   error.status = 404;
   next(error); // 👉 errorHandler로 전달됨
 });
+
 app.use(errorHandler);
 // app.use()
 

@@ -37,8 +37,9 @@ exports.register = async (req, res) => {
 //  로그인 API
 exports.login = async (req, res) => {
   try {
+    console.log(req.body);
     const { email, password } = req.body;
-
+    
     // 사용자 존재 여부 확인
     const user = await User.findOne({ email });
     if (!user) {
