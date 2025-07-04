@@ -1,12 +1,12 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const asyncHandler = require("express-async-handler");
 
 //  회원가입 API
-exports.register = async (req, res) => {
-  try {
-    const { email, password, height, weight, stylePreference } = req.body;
-
+exports.register = asyncHandler(async (req, res) => {
+    const { name, email, password, height, weight, gender } = req.body;
+    console.log(req.body);
     // 이메일 중복 확인
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -18,25 +18,22 @@ exports.register = async (req, res) => {
 
     // 사용자 생성
     const user = new User({
+      name,
       email,
       password: hashedPassword,
       height,
       weight,
-      stylePreference
+      gender
     });
 
     await user.save();
 
     res.status(201).json({ message: '회원가입 성공' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: '서버 오류', error: err.message });
   }
-};
+);
 
 //  로그인 API
-exports.login = async (req, res) => {
-  try {
+exports.login = asyncHandler(async (req, res) => {
     console.log(req.body);
     const { email, password } = req.body;
     
@@ -70,8 +67,5 @@ exports.login = async (req, res) => {
       message: '로그인 성공',
       token
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: '서버 오류', error: err.message });
   }
-};
+);

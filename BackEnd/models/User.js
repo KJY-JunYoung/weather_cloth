@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     enum: ['남', '여'],
     required: true
   },
+
   hasMannequin: {
     type: Boolean,
     default: false

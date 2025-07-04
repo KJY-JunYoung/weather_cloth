@@ -1,7 +1,10 @@
-import useState from 'react'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+console.log("🔧 RegisterPage 렌더링됨");
 
 function RegisterPage() {
-  
+  const navigate = useNavigate(); 
   const[gender, setGender] = useState("남");
   const [formData, setFormData] = useState({
     name : "",
@@ -17,44 +20,45 @@ function RegisterPage() {
   }
   
   const handleSubmit = async (e) => {
-    e.preventDefualt();
+  e.preventDefault();
+  console.log("🔥 handleSubmit 실행됨");
 
-    if (formData.password != formData.confirmPassword) {
-      alert("비밀번호가 일치하지 않습니다!");
-      return;
-    }
-
-    const dataToSend = {
-      name: formData.name.trim(),
-      email: formData.email.toLowerCase(),
-      password: formData.password,
-      height: parseFloat(formData.height),
-      weight: parseFloat(formData.weight),
-      gender
-    };
-    
-    try {
-      const res = await fetch("http://localhost:3000/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(dataToSend)
-      });
-
-      const result = await res.json();
-
-      if (res.ok) {
-        alert("✅ 회원가입 성공!");
-        // window.location.href = "/login"; 또는 navigate("/login")
-      } else {
-        alert("❌ 회원가입 실패: " + result.message);
-      }
-    } catch (err) {
-      console.error("서버 통신 에러:", err);
-      alert("⚠ 서버 오류가 발생했습니다.");
-    }
+  const dataToSend = {
+    name: formData.name,
+    email: formData.email,
+    password: formData.password,
+    height: parseFloat(formData.height),
+    weight: parseFloat(formData.weight),
+    gender
   };
+
+  console.log("📦 서버로 보낼 데이터:", dataToSend);
+
+  try {
+    const res = await fetch("http://localhost:3000/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(dataToSend)
+    });
+
+    console.log("🌐 fetch 응답 객체:", res);
+
+    const result = await res.json();
+
+    console.log("📨 응답 받은 데이터:", result);
+
+    if (res.ok) {
+      alert("✅ 회원가입 성공!");
+    } else {
+      alert("❌ 실패: " + result.message);
+    }
+  } catch (err) {
+    console.error("❗ 서버 통신 에러:", err);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
