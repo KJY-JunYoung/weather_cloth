@@ -1,20 +1,25 @@
 const Cloth = require("../models/Cloth");
+const asyncHandler = require("express-async-handler");
 
-const uploadCloth = async (req, res) => {
-  try {
+const uploadCloth = asyncHandler(async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "파일이 없습니다." });
     }
 
-    const { category } = req.body;
+    const { category, size } = req.body;  // 무조건 옷사이즈가 req 요청 객체에 있어야함 프론트에서 신경쓸 것
 
     if (!["top", "bottom"].includes(category)) {
       return res.status(400).json({ error: "카테고리는 top 또는 bottom만 가능합니다." });
     }
 
+    if(!["XS", "S", "M", "L", "XL", "2XL"].includes(size)) {
+      return res.status(400).json({ error: "사이즈를 선택해주세요." });
+    }
+
     const imageUrl = `/images/clothes/${req.file.filename}`;
 
-    const newCloth = await Clothes.create({
+    const newCloth = await Cloth.create({
+      userId: req.user.id,
       imageUrl,
       category,
     });
@@ -23,24 +28,66 @@ const uploadCloth = async (req, res) => {
       message: "옷 업로드 및 저장 완료",
       data: newCloth,
     });
-  } catch (err) {
-    console.error("❌ 옷 저장 실패:", err);
-    res.status(500).json({ error: "서버 에러" });
   }
-};
+);
 
 
-const getClothes = async (req, res) => {
-  try {
+const getClothes = asyncHandler(async (req, res) => {
     const { category } = req.query;
-    const filter = category ? { category } : {};
-    const clothes = await Cloth.find(filter).sort({ uploadedAt: -1 });  // 프론트에서 요청할대 category가 있어야함
-    // const clothes = await Clothes.find().sort({ uploadedAt: -1 }); // 최신순 정렬
-    res.json(clothes);
-  } catch (err) {
-    console.error("❌ 옷 목록 조회 실패:", err);
-    res.status(500).json({ error: "서버 에러" });
-  }
-};
 
-module.exports = { uploadCloth, getClothes };
+    const filter = { userId: req.user.id }; // ✅ 기본적으로 로그인한 유저만
+    if (category) {
+      filter.category = category; // ✅ 카테고리도 필터링 가능
+    }
+
+    const clothes = await Cloth.find(filter).sort({ uploadedAt: -1 });
+
+    res.json(clothes);
+  }
+);
+
+const deleteClothes = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: "삭제할 ID 목록이 없습니다." });
+  }
+
+  const result = await Cloth.deleteMany({
+    _id: { $in: ids },   // MongoDB가 배열 안의 값 중 하나라도 일치하는 문서를 찾도록 내부적으로 비교
+    userId: req.user.id, // 본인 옷만 삭제되도록
+  });
+
+  res.json({ message: "선택된 옷 삭제 완료", deletedCount: result.deletedCount });
+});
+
+
+const modifyCloth = asyncHandler(async (req, res) => {
+  const clothId = req.params.id;
+  const { category, size } = req.body;
+
+  // 유효성 검사
+  if (category && !["top", "bottom"].includes(category)) {
+    return res.status(400).json({ error: "카테고리는 top 또는 bottom만 가능합니다." });
+  }
+
+  if (size && !["XS", "S", "M", "L", "XL", "2XL"].includes(size)) {
+    return res.status(400).json({ error: "사이즈를 선택해주세요." });
+  }
+
+  // 본인 소유의 옷인지 확인
+  const cloth = await Cloth.findOne({ _id: clothId, userId: req.user.id });
+  if (!cloth) {
+    return res.status(404).json({ error: "옷을 찾을 수 없습니다." });
+  }
+
+  // 수정 적용
+  if (category) cloth.category = category;
+  if (size) cloth.size = size;
+
+  await cloth.save();
+
+  res.json({ message: "옷 정보 수정 완료", data: cloth });
+});
+
+module.exports = { uploadCloth, getClothes, deleteClothes};

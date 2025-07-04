@@ -6,7 +6,20 @@ const clothesSchema = new mongoose.Schema({
     ref: "User",
     required: true
     },
-
+    
+  name: {
+    type: String,
+    required: false  // 사용자가 입력 안 해도 무방하게 기본으론 정해놓은 이름은 CONTROLLER 단에서 건들어야할듯?
+  },
+  description: {
+    type: String,
+    required: false
+  },
+  style: {
+    type: String,
+    enum: ['casual', 'formal', 'sporty', 'street', 'other'],
+    default: 'casual'
+  },
   imageUrl: {
     type: String,
     required: true,
@@ -15,6 +28,19 @@ const clothesSchema = new mongoose.Schema({
     type: String,
     enum: ["top", "bottom"], // 상의/하의 구분
     required: true,
+  },
+  modelUrl: {
+    type: String,
+    required: false  // AI 처리 전에는 비어있을 수 있음
+  },
+  size: {
+    type: String,
+    enum: ["XS", "S", "M", "L", "XL", "2XL"],
+    required: true
+  },
+  color: {
+  type: [String],
+  default: []
   },
   uploadedAt: {
     type: Date,
