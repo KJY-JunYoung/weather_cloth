@@ -2,7 +2,8 @@ const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token; // ✅ 쿠키에서 토큰 꺼냄
-
+  console.log("✅ 받은 쿠키:", req.cookies);
+  console.log("✅ 추출한 token:", token);
   if (!token) {
     return res.status(401).json({ message: "인증 토큰 없음 (쿠키)" });
   }

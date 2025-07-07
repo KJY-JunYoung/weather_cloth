@@ -57,9 +57,10 @@ exports.login = asyncHandler(async (req, res) => {
     );
 
     res.cookie("token", token, {
-        httpOnly: true,       // JS로 접근 못 하게 → XSS 방어
-        secure: false,        // HTTPS에서만 사용할 경우 true (개발 중엔 false)
-        maxAge: 1000 * 60 * 60 * 2 // 2시간 유지
+      httpOnly: true,
+      secure: false,             // 개발 중에는 false
+      sameSite: 'Lax',           // ❗ 꼭 추가해야 함!
+      maxAge: 1000 * 60 * 60 * 2
     });
     //  프로덕션(배포)에서는 꼭 true, 개발 중엔 false
 

@@ -13,7 +13,10 @@ router
 .route("/")
 .get(getClothes)
 .delete(deleteClothes)
-.patch(modifyCloth)
 .post(upload.single("image"), uploadCloth);
+
+router
+.route("/:id")
+.patch(modifyCloth);  // 특정 옷 ID에 대한 수정
 
 module.exports = router;

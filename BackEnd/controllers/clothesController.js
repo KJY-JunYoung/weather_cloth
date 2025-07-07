@@ -73,7 +73,7 @@ const getClothes = asyncHandler(async (req, res) => {
       filter.color = color;
     }
 
-    if(name.trim()) {
+    if(name) {
       filter.name = name;
     }
 
@@ -105,7 +105,7 @@ const deleteClothes = asyncHandler(async (req, res) => {
 
 const modifyCloth = asyncHandler(async (req, res) => {
   const clothId = req.params.id;
-  const { category, size } = req.body;
+  const { category, size, style } = req.body;
 
   // 유효성 검사
   if (category && !["top", "bottom"].includes(category)) {
@@ -116,6 +116,11 @@ const modifyCloth = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "사이즈를 선택해주세요." });
   }
 
+  if (style && !['casual', 'formal', 'sporty', 'street', 'other'].includes(size)) {
+    return res.status(400).json({ error: "스타일을 선택해주세요." });
+  }
+
+  
   // 본인 소유의 옷인지 확인
   const cloth = await Cloth.findOne({ _id: clothId, userId: req.user.id });
   if (!cloth) {
@@ -123,8 +128,17 @@ const modifyCloth = asyncHandler(async (req, res) => {
   }
 
   // 수정 적용
-  if (category) cloth.category = category;
-  if (size) cloth.size = size;
+  if (category) {
+    cloth.category = category;
+  }
+
+  if (size) {
+    cloth.size = size;
+  }
+
+  if (style) {
+    cloth.style = style;
+  }
 
   await cloth.save();
 

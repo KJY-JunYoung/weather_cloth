@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-function HomePage() {
+function WelcomePage() {
   return (
     <div
       style={{
@@ -18,4 +18,4 @@ function HomePage() {
   );
 }
 
-export default HomePage;
+export default WelcomePage;

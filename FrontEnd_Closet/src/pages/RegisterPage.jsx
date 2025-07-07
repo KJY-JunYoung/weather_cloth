@@ -51,6 +51,7 @@ function RegisterPage() {
 
     if (res.ok) {
       alert("✅ 회원가입 성공!");
+      navigate("/");
     } else {
       alert("❌ 실패: " + result.message);
     }
