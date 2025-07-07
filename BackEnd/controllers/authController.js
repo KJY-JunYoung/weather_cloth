@@ -66,7 +66,8 @@ exports.login = asyncHandler(async (req, res) => {
 
     res.status(200).json({
       message: '로그인 성공',
-      token
+      token,
+      hasMannequin : user.hasMannequin
     });
   }
 );
