@@ -1,22 +1,47 @@
 // config/multer.js
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
+// 저장 폴더 설정
+const uploadDir = path.join(__dirname, "..", "public", "images", "clothes");
+
+// 디렉토리 생성 (없으면 자동 생성)
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// multer 저장 방식 지정
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // 실제 저장 폴더 경로 (public 아래에 clothes 폴더)
-    cb(null, path.join(__dirname, "..", "public", "images", "clothes"));
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // 파일명: 현재시간-원래이름 (중복 방지)
-    console.log(file);
     const uniqueName = Date.now() + "-" + file.originalname;
     cb(null, uniqueName);
-  },
+  }
 });
 
-// 나중에 ai 서버단에서 파일 확장자 안되는게 있는지 물어볼 것
+// 허용 확장자 검사 (이미지 파일만 허용)
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|webp/;
+  const ext = path.extname(file.originalname).toLowerCase();
+  const isValid = allowedTypes.test(ext);
 
-const upload = multer({ storage });
+  if (isValid) {
+    cb(null, true);
+  } else {
+    cb(new Error("이미지 파일만 업로드 가능합니다. (jpg, jpeg, png, webp)"), false);
+  }
+};
+
+// multer 설정: 최대 20MB 파일 허용
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 20 * 1024 * 1024 // 최대 20MB
+  }
+});
 
 module.exports = upload;
