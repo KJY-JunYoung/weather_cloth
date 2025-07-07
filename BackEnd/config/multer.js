@@ -15,6 +15,8 @@ const storage = multer.diskStorage({
   },
 });
 
+// 나중에 ai 서버단에서 파일 확장자 안되는게 있는지 물어볼 것
+
 const upload = multer({ storage });
 
 module.exports = upload;

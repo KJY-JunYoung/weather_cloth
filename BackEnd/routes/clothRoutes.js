@@ -2,14 +2,18 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../config/multer");
 const { 
-  uploadCloth,
-  getClothes
+   uploadCloth, 
+   getClothes, 
+   deleteClothes, 
+   modifyCloth
  } = require("../controllers/clothesController");
 
-router
-.post("/upload-cloth", upload.single("image"), uploadCloth);
 
 router
-.get("/clothes", getClothes);
+.route("/")
+.get(getClothes)
+.delete(deleteClothes)
+.patch(modifyCloth)
+.post(upload.single("image"), uploadCloth);
 
 module.exports = router;

@@ -6,7 +6,8 @@ const path = require("path");
 const dbConnect = require('./config/dbConnect');
 // const callAIServer = require("./controllers/testFastApi")
 const errorHandler = require("./middlewares/errorHandler");
-const uploadRouter = require("./routes/uploadRoutes");
+const clothRouter = require("./routes/clothRoutes");
+const manequinnRouter = require("./routes/manequinnRoutes");
 const authRouter = require("./routes/authRoutes");
 const cookieParser = require('cookie-parser');
 const verifyToken = require("./middlewares/authMiddleware");
@@ -24,7 +25,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(cookieParser());
 app.use("/auth", authRouter);
-app.use("/api", verifyToken, uploadRouter);
+app.use("/api/manequinn", verifyToken, manequinnRouter);
+app.use("/api/cloth", verifyToken, clothRouter);
 app.use((req, res, next) => {
   const error = new Error(`❗ 요청한 경로 ${req.originalUrl} 를 찾을 수 없습니다.`);
   error.status = 404;
