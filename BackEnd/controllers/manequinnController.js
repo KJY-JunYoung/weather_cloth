@@ -1,56 +1,64 @@
-const { generate3DModel } = require('../ai/mannequin');
-const Manequinn = require('../models/Manequinn');
-const User = require('../models/User');
-const asyncHandler = require('express-async-handler');
+// 외부 패키지 및 모듈 불러오기
+const axios = require("axios");               
+const FormData = require("form-data");       
+const fs = require("fs");                   
+const path = require("path");                
+
+const Manequinn = require("../models/Manequinn"); 
+const User = require("../models/User");           
+
+exports.createMannequin = async (req, res, next) => {
+  try {
+    const userId = req.userId;  
+    const files = req.files;     
+    
+    // 이미지 유효성 검사
+    if (!files) {
+      return res.status(400).json({ message: "이미지를 업로드해주세요." });
+    }
+    if (files.length < 1) {
+      return res.status(400).json({ message: "최소 1장의 이미지를 업로드해야 합니다." });
+    }
+    if (files.length > 3) {
+      return res.status(400).json({ message: "최대 3장까지만 업로드할 수 있습니다." });
+    }
 
 
-// @desc 사진 1~3장 업로드 후 AI 분석하여 3D 마네킹 생성
-// @route POST /api/manequinn/make-3d
-// @access Private (JWT 인증 필요)
- 
- 
-exports.make3DModel = asyncHandler(async (req, res) => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      const filePath = path.join(__dirname, "..", "public", "images", "clothes", file.filename);
+      const stream = fs.createReadStream(filePath); 
+      formData.append("images", stream, file.originalname); 
+    });
 
-// 업로드 유효성 검사
-const files = req.files;
+    // FastAPI 서버에 POST 요청 전송
+    const response = await axios.post("http://localhost:8000/make-3d", formData, {
+      headers: formData.getHeaders(),        
+      maxBodyLength: Infinity,               
+    });
 
-// 파일이 아예 없는 경우
-if (!files) {
-  return res.status(400).json({ message: '이미지를 업로드해주세요.' });
-}
+    const { model3DUrl } = response.data; 
+  
+    // MongoDB에 마네킹 정보 저장
+    const mannequin = new Manequinn({
+      userId,
+      modelUrl: model3DUrl,
+    });
+    await mannequin.save();
 
-// 파일이 1장보다 적은 경우
-if (files.length < 1) {
-  return res.status(400).json({ message: '최소 1장의 이미지를 업로드해야 합니다.' });
-}
+    // 해당 유저 문서에도 마네킹 생성 여부 및 URL 업데이트
+    await User.findByIdAndUpdate(userId, {
+      hasMannequin: true,
+      mannequinModelUrl: model3DUrl,
+    });
 
-// 파일이 3장을 초과한 경우
-if (files.length > 3) {
-  return res.status(400).json({ message: '최대 3장까지만 업로드할 수 있습니다.' });
-}
-
-  // 파일 경로 배열 추출
-  const imagePaths = files.map(file => file.path);
-
-  // AI 분석 + 3D 모델 생성
-  const modelUrl = await generate3DModel(imagePaths);
-
-  // 생성된 마네킹 모델 MongoDB 저장
-  const manequinn = await Manequinn.create({
-    userId: req.user.id,
-    modelUrl
-  });
-
-  // 사용자 정보에 마네킹 생성 여부와 URL 업데이트
-  await User.findByIdAndUpdate(req.user.id, {
-    hasMannequin: true,
-    mannequinModelUrl: modelUrl
-  });
-
-  // 클라이언트에 결과 응답
-  res.status(200).json({
-    status: 'success',
-    model3DUrl: modelUrl,
-    manequinnId: manequinn._id
-  });
-});
+    // 클라이언트에게 성공 응답 반환
+    res.status(201).json({
+      message: "3D 마네킹 생성 완료",
+      modelUrl: model3DUrl,
+    });
+  } catch (err) {
+    console.error("마네킹 생성 중 오류:", err.message);
+    next(err);
+  }
+};
