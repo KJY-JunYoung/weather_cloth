@@ -71,3 +71,14 @@ exports.login = asyncHandler(async (req, res) => {
     });
   }
 );
+
+exports.logout = asyncHandler(async (req, res) => {
+  res.clearCookie("token", {
+    httpOnly:true,
+    sameSite:"Lax",
+    secure:false
+  })
+
+  res.status(200).json({message:"로그아웃 성공"});
+  
+})
