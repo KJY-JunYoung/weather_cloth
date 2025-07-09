@@ -28,8 +28,8 @@ const app = express();
 
 // CORS 설정 (프론트엔드 도메인 허용)
 app.use(cors({
-  origin: "http://localhost:5173", // 오타: orgin → origin
-  credentials: true                // 쿠키 포함 요청 허용
+  origin: "http://localhost:5173", 
+  credentials: true                
 }));
 
 // 정적 파일 경로 설정 (/public 경로 하위 파일 접근 가능)
@@ -42,9 +42,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 //라우터 등록
-app.use("/auth", authRouter);                           // 회원가입, 로그인 등
-app.use("/api/cloth", verifyToken, clothRouter);        // 옷 등록/조회
-app.use("/api/manequinn", verifyToken, manequinnRouter); // 마네킹 생성/조회
+app.use("/auth", authRouter);                          
+app.use("/api/cloth", verifyToken, clothRouter);      
+app.use("/api/manequinn", verifyToken, manequinnRouter); 
 
 //존재하지 않는 경로 처리 (404 핸들러)
 app.use((req, res, next) => {
