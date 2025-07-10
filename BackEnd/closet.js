@@ -26,7 +26,7 @@ const errorHandler = require("./middlewares/errorHandler");
 //Express 앱 생성
 const app = express();
 
-// CORS 설정 (프론트엔드 도메인 허용)
+// CORS 설정 (프론트엔드 도메인 허용)ttt
 app.use(cors({
   origin: "http://localhost:5173", 
   credentials: true                
