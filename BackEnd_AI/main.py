@@ -25,7 +25,7 @@ def make_3d_model(data: ModelRequest):
 
     return {
         "status": "success",
-        "model3DUrl": fake_model_url
+        "model3DUrl": fake_model_ur
     }
 
 class ClothModelResponse(BaseModel):
