@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import './loginPage.css'
+import Layout from '../layouts/Layout'
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,16 +21,17 @@ function LoginPage() {
       });
 
       const data = await response.json();
-
+      console.log("Response status:", response.status);
+      console.log("Response data:", data);
       if (response.ok) {
         setMessage('로그인 성공!');
         console.log('Login success:', data);
 
-        // 나중에 조건 분기 필요할 경우 여기에 작성
-        // if (data.hasMannequin) { ... }
+        localStorage.setItem("token", data.token);  // ✅ 이거 추가해야 MyCloset 등에서 토큰 인식 가능
 
         navigate('/main');
       } else {
+        alert("올바르지 않습니다.")
         setMessage(`로그인 실패: ${data.message}`);
       }
     } catch (error) {
@@ -38,33 +41,27 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center">로그인</h2>
-        <input
-          type="text"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-2 mb-6 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={handleLogin}
-          className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300"
-        >
-          로그인
-        </button>
-        {message && (
-          <p className="mt-4 text-sm text-center text-red-500">{message}</p>
-        )}
-      </div>
+    <div className="loginForm">
+      <span className='logo glitch'>ISECLOTH</span>
+      <label className='email-form'>
+        <span className="email">
+          email
+        </span>
+        <input onChange={(e) => setEmail(e.target.value)} placeholder="email" name="email">
+        </input>
+      </label>
+    
+      <label>
+        <span>password</span>
+        <input onChange={(e) => setPassword(e.target.value)} placeholder='password' type='password' name="password"></input>
+      </label>
+      
+
+      <button onClick={()=>handleLogin()} className='loginButton'>
+        Login
+      </button>
+
+      <Link to={"/register"} className='register'>Don't you have account yet?</Link>
     </div>
   );
 }

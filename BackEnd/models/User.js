@@ -16,10 +16,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  mannequinModelUrl: {
-    type: String,
-    required: false  // 최초 로그인 후 아직 생성 전일 수 있음
-  },
 
   createdAt: { type: Date, default: Date.now }
 });

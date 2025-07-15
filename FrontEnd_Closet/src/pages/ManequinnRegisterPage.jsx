@@ -1,7 +1,6 @@
 function ManequinnRegisterPage() {
-    return <div>
-        <h1>ManequinnRegisterPage</h1>
-    </div>
+    return <Layout></Layout>
 }
+
 
 export default ManequinnRegisterPage;

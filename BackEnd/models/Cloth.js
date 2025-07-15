@@ -49,4 +49,4 @@ const clothesSchema = new mongoose.Schema({
   // 나중에 userId 같은 필드 추가 가능
 });
 
-module.exports = mongoose.model("Cloth", clothesSchema);
+module.exports = mongoose.model("Cloth", clothesSchema, "clothes");

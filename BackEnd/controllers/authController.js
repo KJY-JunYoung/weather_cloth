@@ -2,6 +2,8 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const asyncHandler = require("express-async-handler");
+const Cloth = require('../models/Cloth');
+const Manequinn = require('../models/Mannequin');
 
 //  회원가입 API
 exports.register = asyncHandler(async (req, res) => {
@@ -67,7 +69,8 @@ exports.login = asyncHandler(async (req, res) => {
     res.status(200).json({
       message: '로그인 성공',
       token,
-      hasMannequin : user.hasMannequin
+      hasMannequin : user.hasMannequin  // 프론트에서 이걸 받고 false면 등록하시겠어요? -> 마네킹 등록 페이지로 이동(여기서 기본 마네킹 선택가능)
+      // -> 싫다고하면 넘어감
     });
   }
 );
@@ -82,3 +85,78 @@ exports.logout = asyncHandler(async (req, res) => {
   res.status(200).json({message:"로그아웃 성공"});
   
 })
+
+// 내 정보 조회
+exports.getMyInfo = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id).select('-password');
+  if (!user) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+
+  res.status(200).json({ message: '사용자 정보 조회 성공', user });
+});
+
+// 내 정보 수정
+exports.updateMyInfo = asyncHandler(async (req, res) => {
+  const { name, height, gender } = req.body;
+
+  const user = await User.findById(req.user.id);
+  if (!user) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+
+  if (name) user.name = name;
+  if (height) user.height = height;
+  if (gender && ['남', '여'].includes(gender)) user.gender = gender;
+
+  await user.save();
+  res.status(200).json({ message: '사용자 정보 수정 완료', user });
+});
+
+//  마이페이지: 유저 정보 + 옷 + 마네킹 조회
+exports.getMyPage = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id).select('-password');
+  const clothes = await Cloth.find({ userId: req.user.id }).sort({ uploadedAt: -1 });
+  const mannequin = await Mannequin.findOne({ userId: req.user.id });
+
+  res.status(200).json({
+    message: '마이페이지 데이터 조회 완료',
+    user,
+    clothes,
+    mannequin,
+  });
+});
+
+
+// 이메일(아이디) 찾기 API (이름 기반)
+exports.findEmail = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+
+  // 이름으로 사용자 검색
+  const user = await User.findOne({ name });
+
+  if (!user) {
+    return res.status(404).json({ message: "일치하는 사용자를 찾을 수 없습니다." });
+  }
+
+  res.status(200).json({
+    message: "이메일 조회 성공",
+    email: user.email,
+  });
+});
+
+
+// 비밀번호 재설정 (Reset Password)
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  // 사용자 존재 여부 확인
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "등록된 이메일이 없습니다." });
+  }
+
+  // 새 비밀번호 암호화
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+
+  await user.save();
+
+  res.status(200).json({ message: "비밀번호가 성공적으로 재설정되었습니다." });
+});

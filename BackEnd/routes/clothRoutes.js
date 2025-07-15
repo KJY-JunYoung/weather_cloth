@@ -1,6 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../config/multer");
+const verifyToken = require("../middlewares/authMiddleware");
+
+router.use((req, res, next) => {
+  console.log("✅ clothRouter 진입!");
+  next();
+});
+
 const { 
    uploadCloth, 
    getClothes, 
@@ -10,10 +17,10 @@ const {
 
 
 router
-.route("/")
-.get(getClothes)
-.delete(deleteClothes)
-.post(upload.single("image"), uploadCloth);
+  .route("/")
+  .get(verifyToken, getClothes)  // 여기에 직접 붙이기
+  .delete(verifyToken, deleteClothes)
+  .post(verifyToken, upload.single("image"), uploadCloth);
 
 router
 .route("/:id")

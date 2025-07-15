@@ -13,19 +13,22 @@ function Header() {
     }
   };
   return (
-    <header className="bg-black text-white shadow-sm">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-blue-500">ISECLOTH</Link>
+    <header>
+      <div className="inner">
+        <Link to="/main" className="logo glitch">ISECLOTH</Link>
 
-        <nav className="space-x-6 text-sm font-medium">
-          <Link to="/main" className="hover:text-blue-400 transition">Main</Link>
-          <Link to="/myCloset" className="hover:text-blue-400 transition">My closet</Link>
-          <Link to="/virtualFitting" className="hover:text-blue-400 transition">Fitting Room</Link>
-          <Link onClick={logout} className="hover:text-red-400 transition">Logout</Link>
+        <nav>
+          <ul>
+            <li><Link to="/my-page">MY PAGE</Link></li>
+            <li><Link to="/myCloset">MY CLOSET</Link></li>
+            <li><Link to="/virtualFitting">FITTING ROOM</Link></li>
+            <li><Link onClick={logout}>LOGOUT</Link></li>
+          </ul>
         </nav>
       </div>
     </header>
   );
 }
 
+import "./Header.css";
 export default Header;

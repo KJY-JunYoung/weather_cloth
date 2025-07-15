@@ -1,12 +1,14 @@
+import { Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import './layout.css';
 
-function Layout({ children }) {
+function Layout() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white font-sans flex flex-col relative">
+    <div id="layout">
       <Header />
-      <main className="flex-grow max-w-5xl mx-auto px-4 py-10 w-full">
-        {children}
+      <main>
+        <Outlet />  {/* 요게 핵심! */}
       </main>
       <Footer />
     </div>

@@ -1,9 +1,10 @@
 function Footer() {
   return (
-    <footer className="bg-black text-gray-400 text-sm text-center py-4 w-full mt-auto">
-      © 2025 Digital Closet. All rights reserved.
+    <footer>
+      <p>© 2025 Digital Closet. All rights reserved.</p>
     </footer>
   );
 }
 
+import "./footer.css"
 export default Footer;
