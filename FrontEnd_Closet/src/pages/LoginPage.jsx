@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './loginPage.css'
-import Layout from '../layouts/Layout'
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -44,18 +43,15 @@ function LoginPage() {
     <div className="loginForm">
       <span className='logo glitch'>ISECLOTH</span>
       <label className='email-form'>
-        <span className="email">
-          email
-        </span>
-        <input onChange={(e) => setEmail(e.target.value)} placeholder="email" name="email">
+        <input onChange={(e) => setEmail(e.target.value)} placeholder="Email" name="email">
         </input>
       </label>
     
       <label>
-        <span>password</span>
-        <input onChange={(e) => setPassword(e.target.value)} placeholder='password' type='password' name="password"></input>
+        <input onChange={(e) => setPassword(e.target.value)} placeholder='Password' type='password' name="password"></input>
       </label>
       
+      {/* <div className="bar"></div> */}
 
       <button onClick={()=>handleLogin()} className='loginButton'>
         Login

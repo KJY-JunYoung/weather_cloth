@@ -26,6 +26,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
     color: clothColorString,
   };
 
+  
   setForm(newForm);
   setEditMode(false);
 }, [cloth?._id]); // <- 이게 핵심!
@@ -56,9 +57,10 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
     });
 
     if (res.ok) {
-      const updated = await res.json();
-      onUpdate(updated);
-      setEditMode(false);
+      const result = await res.json();
+        const updated = result.data;  // ✅ data 안에 있는 cloth 꺼냄
+        onUpdate(updated);
+        setEditMode(false);
     } else {
       alert("수정 실패");
     }
@@ -83,7 +85,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
   if (!cloth) {
     return (
       <div className="closet-detail-panel">
-        <p className="closet-placeholder">왼쪽에서 옷을 선택해주세요.</p>
+        <p className="closet-placeholder">Please Choose Cloth Leftside :)</p>
       </div>
     );
   }
@@ -97,29 +99,29 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
       />
 
       {editMode ? (
-        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-          <label>이름:</label>
+        <form className="descriptionModify" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+          <label>NAME</label>
           <input name="name" value={form.name} onChange={handleChange} className="detail-input" />
 
-          <label>설명:</label>
+          <label>DESCRIPTION</label>
           <input name="description" value={form.description} onChange={handleChange} className="detail-input" />
 
-          <label>스타일:</label>
+          <label>STYLE</label>
           <select name="style" value={form.style} onChange={handleChange} className="detail-input">
-            <option value="casual">캐주얼</option>
-            <option value="formal">포멀</option>
-            <option value="sporty">스포티</option>
-            <option value="street">스트리트</option>
-            <option value="other">기타</option>
+            <option value="casual">CASUAL</option>
+            <option value="formal">FORMAL</option>
+            <option value="sporty">SPORTY</option>
+            <option value="street">STREET</option>
+            <option value="other">ETC</option>
           </select>
 
-          <label>카테고리:</label>
+          <label>CATEGORY</label>
           <select name="category" value={form.category} onChange={handleChange} className="detail-input">
-            <option value="top">상의</option>
-            <option value="bottom">하의</option>
+            <option value="top">TOP</option>
+            <option value="bottom">BOTTOM</option>
           </select>
 
-          <label>사이즈:</label>
+          <label>SIZE</label>
           <select name="size" value={form.size} onChange={handleChange} className="detail-input">
             <option value="XS">XS</option>
             <option value="S">S</option>
@@ -129,7 +131,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
             <option value="2XL">2XL</option>
           </select>
 
-          <label>색상 (쉼표로 구분):</label>
+          <label>COLOR</label>
           <input
             name="color"
             value={form.color}
@@ -137,24 +139,28 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
             className="detail-input"
             placeholder="white, black"
           />
-
-          <button type="submit" className="detail-button save">저장</button>
-          <button type="button" onClick={() => setEditMode(false)} className="detail-button">취소</button>
+          <div className="buttonsModify">
+          <button type="submit" className="detail-button save">SAVE</button>
+          </div>
         </form>
       ) : (
-        <div>
-          <p><strong>이름:</strong> {form.name || "-"}</p>
-          <p><strong>설명:</strong> {form.description || "-"}</p>
-          <p><strong>스타일:</strong> {form.style}</p>
-          <p><strong>카테고리:</strong> {form.category}</p>
-          <p><strong>사이즈:</strong> {form.size}</p>
-          <p><strong>색상:</strong> {form.color}</p>
-
-          <button onClick={() => setEditMode(true)} className="detail-button">수정</button>
+        <div className="panel">
+          <div className="description">
+            <div><span>NAME</span> <span>{form.name || "-"}</span></div>
+            <div><span>DESCRIPTION</span> <span>{form.description || "-"}</span></div>
+            <div><span>STYLE</span> <span>{form.style}</span></div>
+            <div><span>CATEGORY</span> <span>{form.category}</span></div>
+            <div><span>SIZE</span> <span>{form.size}</span></div>
+            <div><span>COLOR</span> <span>{form.color}</span></div>
+          </div>
+          <div className="buttons">
+            <button onClick={() => setEditMode(true)} className="detail-button">MODIFY</button>
+            <button onClick={handleDelete} className="detail-button delete">DELETE</button>
+          </div>
         </div>
       )}
 
-      <button onClick={handleDelete} className="detail-button delete">삭제</button>
+     
     </div>
   );
 }

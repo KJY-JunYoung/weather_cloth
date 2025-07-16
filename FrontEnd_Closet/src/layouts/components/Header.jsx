@@ -7,7 +7,8 @@ function Header() {
         method: "POST", // 보통 로그아웃은 POST로 처리
         credentials: "include", // 쿠키 포함 (중요)
       });
-      window.location.href = "/"; // 홈으로 강제 이동
+      localStorage.removeItem("token");
+      window.location.href = "/login"; // 로그인 화면으로 강제 이동
     } catch (err) {
       console.error("로그아웃 실패", err);
     }
@@ -15,7 +16,7 @@ function Header() {
   return (
     <header>
       <div className="inner">
-        <Link to="/main" className="logo glitch">ISECLOTH</Link>
+        <Link to="/main" className="logo2 glitch">ISECLOTH</Link>
 
         <nav>
           <ul>

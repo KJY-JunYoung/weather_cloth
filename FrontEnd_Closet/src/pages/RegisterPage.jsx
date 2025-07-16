@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import './registerPage.css'
 console.log("🔧 RegisterPage 렌더링됨");
 
 function RegisterPage() {
@@ -50,90 +50,91 @@ function RegisterPage() {
     console.log("📨 응답 받은 데이터:", result);
 
     if (res.ok) {
-      alert("✅ 회원가입 성공!");
-      navigate("/");
+      alert("✅ Register Complete!");
+      navigate("/login");
     } else {
-      alert("❌ 실패: " + result.message);
+      alert("❌ Register Error: " + result.message);
     }
   } catch (err) {
-    console.error("❗ 서버 통신 에러:", err);
+    console.error("❗ Servor Eror:", err);
   }
 };
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="registerPage">
+      <span className='logo glitch' onClick={()=> navigate("/login")}>ISECLOTH</span>
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white shadow-md rounded-xl p-8 space-y-4"
+        className="registerForm"
       >
-        <h2 className="text-2xl font-bold mb-4 text-center">회원가입</h2>
+        <h2 className="title">Register</h2>
 
         <input
           type="text"
           name="name"
-          placeholder="이름"
+          placeholder="Name"
           onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
+          className="Name"
         />
 
         <input
           type="text"
           name="email"
-          placeholder="이메일"
+          placeholder="email"
           onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
+          className='email'
         />
 
         <input
           type="password"
           name="password"
-          placeholder="비밀번호"
+          placeholder="password"
           onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
+          className="password"
         />
 
         <input
           type="password"
           name="confirmPassword"
-          placeholder="비밀번호 확인"
+          placeholder="Confirm password"
           onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
+          className="confirmPassword"
         />
 
         <input
           type="text"
           name="height"
-          placeholder="신장(cm)"
+          placeholder="height(cm)"
           onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
+          className="height"
         />
 
         <input
           type="text"
           name="weight"
-          placeholder="체중(kg)"
+          placeholder="weight(kg)"
           onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
+          className="weight"
         />
 
-        <div className="w-full">
-          <label className="block mb-1 text-sm font-medium">성별</label>
+        <div className="gender">
+          <label className="genderDrop">Gender</label>
           <select
             value={gender}
             onChange={(e) => setGender(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
+            className="dropDown"
           >
-            <option value="남">남자</option>
-            <option value="여">여자</option>
+            <option value="남">Male</option>
+            <option value="여">Female</option>
           </select>
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4"
+          className="registerButton"
         >
-          회원가입
+          Register
         </button>
       </form>
     </div>

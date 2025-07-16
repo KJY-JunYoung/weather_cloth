@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./clothRegisterPage.css";
 
-function ClothRegisterPage() {
-  const navigate = useNavigate();
+function ClothRegisterPage({ onClose, onSuccess }) {
+  // const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -54,8 +54,9 @@ function ClothRegisterPage() {
 
       if (!res.ok) throw new Error("옷 등록 실패");
 
-      alert("✅ 옷이 등록되었습니다!");
-      navigate("/myCloset");
+      alert("ENROLL COMPLETE!");
+      onSuccess();
+      onClose(); 
     } catch (err) {
       console.error("등록 에러:", err);
       alert("❌ 등록 중 오류가 발생했습니다.");
@@ -65,34 +66,34 @@ function ClothRegisterPage() {
   return (
     <div className="cloth-register-page">
         <div className="form-wrapper">
-      <h2>👕 옷 등록하기</h2>
-      <form onSubmit={handleSubmit}>
-        <label>이미지:</label>
+      <h2>ENROLL CLOTH</h2>
+      <form onSubmit={handleSubmit} className="clothrp">
+        <label>IMAGE</label>
         <input type="file" accept="image/*" onChange={handleImageChange} />
         {preview && <img src={preview} alt="미리보기" className="preview" />}
 
-        <label>이름:</label>
+        <label>NAME</label>
         <input name="name" value={form.name} onChange={handleChange} required />
 
-        <label>설명:</label>
+        <label>DESCRIPTION</label>
         <input name="description" value={form.description} onChange={handleChange} />
 
-        <label>스타일:</label>
+        <label>STYLE</label>
         <select name="style" value={form.style} onChange={handleChange}>
-          <option value="casual">캐주얼</option>
-          <option value="formal">포멀</option>
-          <option value="sporty">스포티</option>
-          <option value="street">스트리트</option>
-          <option value="other">기타</option>
+          <option value="casual">CASUAL</option>
+          <option value="formal">FORMAL</option>
+          <option value="sporty">SPORTY</option>
+          <option value="street">STREET</option>
+          <option value="other">ETC</option>
         </select>
 
-        <label>카테고리:</label>
+        <label>CATEGORY</label>
         <select name="category" value={form.category} onChange={handleChange}>
-          <option value="top">상의</option>
-          <option value="bottom">하의</option>
+          <option value="top">TOP</option>
+          <option value="bottom">BOTTOM</option>
         </select>
 
-        <label>사이즈:</label>
+        <label>SIZE</label>
         <select name="size" value={form.size} onChange={handleChange}>
           <option value="XS">XS</option>
           <option value="S">S</option>
@@ -102,15 +103,15 @@ function ClothRegisterPage() {
           <option value="2XL">2XL</option>
         </select>
 
-        <label>색상 (쉼표로 구분):</label>
+        <label>COLORS</label>
         <input
           name="color"
           value={form.color}
           onChange={handleChange}
           placeholder="white, black"
         />
-
-        <button type="submit">등록하기</button>
+        <button type="submit" className="enrollButton">ENROLL</button>
+        <button onClick={onClose} className="modal-close">✖</button>
       </form>
       </div>
     </div>

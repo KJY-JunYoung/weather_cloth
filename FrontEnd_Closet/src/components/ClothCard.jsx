@@ -1,4 +1,5 @@
 // ClothCard.jsx
+import './clothCard.css'
 function ClothCard({ cloth, onEdit, isSelected }) {
   return (
     <div

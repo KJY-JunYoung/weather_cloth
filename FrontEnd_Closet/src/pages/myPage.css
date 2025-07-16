@@ -1,0 +1,9 @@
+.MyPage {
+    padding: 20px;
+    /* border: 1px solid white; */
+    height: calc(100vh - 160px);
+}
+
+.MyPage h2 {
+    font-family: 'KIMM_Bold';
+}

@@ -1,5 +1,8 @@
+import './myPage.css'
 function MyPage() {
-    return <div>MyPage</div>
+    return <div className="MyPage">
+            <h2>MY PAGE</h2>
+        </div>
 }
 
 export default MyPage;

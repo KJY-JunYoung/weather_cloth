@@ -1,16 +1,19 @@
-import { Link } from 'react-router-dom';
+// WelcomePage.jsx
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function WelcomePage() {
-  return (
-    <div id='welcomeWrap'>
-      <div id = 'loginRegister'>
-        <h2>홈</h2>
-        <Link to="/login">로그인</Link><br />
-        <Link to="/register">회원가입</Link>
-      </div>
-    </div>
-  );
+  const navigate = useNavigate();
+  const isLoggedIn= localStorage.getItem("token");
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/main");
+    } else {
+      navigate("/login"); // 또는 "/welcome" 자체 유지도 가능
+    }
+  }, [isLoggedIn, navigate]);
+
+  return null; // 이동만 하고 아무것도 안 보여줘도 됨
 }
 
-import "./welcomePage.css";
 export default WelcomePage;

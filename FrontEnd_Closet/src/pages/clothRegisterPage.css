@@ -2,21 +2,18 @@
 /* 전체 등록 페이지 */
 .cloth-register-page {
   /* background-color: #1e1e1e; */
+  /* border: 1px solid white; */
   color: white;
   padding: 60px 24px;                 /* ⬅ 상하 + 좌우 여백 */
-  min-height: calc(100vh - 120px);    /* 헤더/푸터 고려 */
   display: flex;
   justify-content: center;            /* 중앙 정렬 */
   align-items: flex-start;
 }
 
 .form-wrapper {
+  /* border: 1px solid white; */
   width: 100%;
-  max-width: 500px;                   /* ⬅ 너무 넓지 않게 */
-  background-color: #2a2a2a;
-  padding: 32px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  max-width: 500px;
 }
 
 /* 헤딩 */
@@ -36,16 +33,16 @@ form {
 
 /* 폼 요소 공통 */
 label {
-  margin-top: 12px;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   font-weight: bold;
   color: #ddd;
 }
 
 input,
 select {
-  padding: 8px;
-  border-radius: 4px;
+  height: 38px;
+  padding: 10px;
+  border-radius: 0;
   border: 1px solid #555;
   background-color: #2a2a2a;
   color: white;
@@ -71,16 +68,38 @@ select:focus {
 /* 등록 버튼 */
 button[type="submit"] {
   margin-top: 20px;
+  margin-bottom: 10px;
+  width: 80%;
   padding: 10px;
-  background-color: #3b8b3b;
+  background-color: #555;;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 15px;
   transition: background-color 0.2s;
+  height: 40px;
 }
 
 button[type="submit"]:hover {
-  background-color: #2f6e2f;
+  background-color: #777;
+}
+
+.buttonsModify {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.enrollButton{
+  margin: 0 auto;
+}
+
+
+.clothrp input,
+.clothrp select {
+  margin-bottom: 15px;
+  height: auto;
 }

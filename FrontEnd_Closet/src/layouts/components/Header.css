@@ -25,15 +25,15 @@ header .inner {
     align-items: center;
 }
 
-.logo.glitch {
+.logo2.glitch {
     position: relative;
     color: white;
     font: italic bold 26px/1 "KIMM_Bold", sans-serif;
     text-transform: uppercase;
 }
 
-.logo.glitch::before,
-.logo.glitch::after {
+.logo2.glitch::before,
+.logo2.glitch::after {
     content: "ISECLOTH";
     position: absolute;
     top: 0;
@@ -45,13 +45,13 @@ header .inner {
     pointer-events: none;
 }
 
-.logo.glitch::before {
+.logo2.glitch::before {
     text-shadow: -2px 0 red;
     animation: glitchTop 1s infinite linear;
     transform: translateX(2px);
 }
 
-.logo.glitch::after {
+.logo2.glitch::after {
     text-shadow: -2px 0 blue;
     animation: glitchBottom 1s infinite linear;
     transform: translateX(-2px);

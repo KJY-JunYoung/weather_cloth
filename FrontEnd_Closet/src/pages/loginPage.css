@@ -21,6 +21,7 @@
     color: white;
     font: italic bold 26px/1 "KIMM_Bold", sans-serif;
     text-transform: uppercase;
+    margin-bottom: 40px;
 }
 .logo.glitch::before,
 .logo.glitch::after {
@@ -135,15 +136,23 @@
     }
 }
 
+.bar {
+    position: relative;
+    width: 240px;
+    height: 1px;
+    background: #555;
+}
+
 .loginForm span {
     display: flex;
 }
 
 .loginButton {
-    margin: 20px auto;
+    margin-top: 10px;
     font: bold 16px/1 "KIMM_Bold";
     width: 240px;
-    height: 35px;  
+    height: 38px;
+    cursor: pointer;
 }
 
 .loginForm .register {
@@ -153,4 +162,5 @@
   text-decoration: none;
   text-align: center;
   font: italic bold 12px/1 "KIMM_Bold", sans-serif;
+  cursor: pointer;
 }

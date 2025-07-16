@@ -88,16 +88,20 @@ const getClothes = asyncHandler(async (req, res) => {
 );
 
 const deleteClothes = asyncHandler(async (req, res) => {
-  const { ids } = req.body;
+  const clothId = req.params.id;
 
-  if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ error: "삭제할 ID 목록이 없습니다." });
+  if (!clothId) {
+    return res.status(400).json({ error: "삭제할 ID가 없습니다." });
   }
 
-  const result = await Cloth.deleteMany({
-    _id: { $in: ids },   // MongoDB가 배열 안의 값 중 하나라도 일치하는 문서를 찾도록 내부적으로 비교
+  const result = await Cloth.deleteOne({
+    _id: clothId,
     userId: req.user.id, // 본인 옷만 삭제되도록
   });
+
+  if (result.deletedCount === 0) {
+    return res.status(404).json({ error: "삭제할 옷을 찾을 수 없습니다." });
+  }
 
   res.json({ message: "선택된 옷 삭제 완료", deletedCount: result.deletedCount });
 });

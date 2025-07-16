@@ -5,12 +5,16 @@ import ClothDetailPanel from "../components/ClothDetailPanel";
 import { useNavigate } from "react-router-dom";
 import UnityViewer from "../components/UnityViewer";
 import "./myClosetPage.css";
+import ClothRegisterPage from "./ClothRegisterPage";
+import Modal from "../components/Modal";
+import WeatherInfoPanel from "../components/WeatherInfoPanel"
 
 function MyClosetPage() {
   const [clothes, setClothes] = useState([]);
   const [selectedCloth, setSelectedCloth] = useState(null);
   const navigate = useNavigate();
-
+  const [category, setCategory] = useState("all")
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const fetchClothes = async (selectedId = null) => {
     const token = localStorage.getItem("token");
     const res = await fetch("http://localhost:3000/api/cloth", {
@@ -32,6 +36,10 @@ function MyClosetPage() {
   useEffect(() => {
     fetchClothes();
   }, []);
+
+  const filteredClothes = category === "all"
+  ? clothes
+  : clothes.filter((cloth) => cloth.category === category);
 
   const handleEdit = (cloth) => {
     const latest = clothes.find((c) => c._id === cloth._id);
@@ -60,13 +68,22 @@ function MyClosetPage() {
     <div className="closet-container">
       <div className="closet-left">
         <div className="closet-header">
-          <h2>내 옷장</h2>
-          <button className="register-button" onClick={() => navigate("/register-cloth")}>
-            + 등록하기
+          <h2>MY CLOSET</h2>
+          <button className="register-button" onClick={() => setShowRegisterModal(true)}>
+            ENROLL
           </button>
         </div>
+        <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="categoryFilter"
+          >
+            <option value="all">ALL</option>
+            <option value="top">TOP</option>
+            <option value="bottom">BOTTOM</option>
+          </select>
         <div className="closet-card-list">
-          {clothes.map((cloth) => (
+          {filteredClothes.map((cloth) => (
             <ClothCard
               key={cloth._id}
               cloth={cloth}
@@ -89,13 +106,15 @@ function MyClosetPage() {
         }}
       />
 
-      <div className="closet-unity-panel">
-        {selectedCloth?.modelUrl ? (
-          <UnityViewer modelUrl={selectedCloth.modelUrl} />
-        ) : (
-          <div className="no-model">👕 3D 모델링 정보가 없습니다.</div>
-        )}
-      </div>
+      {/* <div className="weatherInfoPanel">
+        <WeatherInfoPanel></WeatherInfoPanel>
+      </div> */}
+
+      {showRegisterModal && (
+        <Modal onClose={() => setShowRegisterModal(false)}>
+          <ClothRegisterPage onSuccess={()=>fetchClothes()} onClose={() => setShowRegisterModal(false)} />
+        </Modal>
+      )}
     </div>
   );
 }
