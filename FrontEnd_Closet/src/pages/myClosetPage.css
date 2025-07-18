@@ -175,6 +175,8 @@ body {
   border: none;
   cursor: pointer;
   height: 30px;
+  font-family: 'Noto Sans Kr';
+  font-weight: bold;
 }
 
 .register-button:hover {
@@ -214,6 +216,6 @@ body {
 }
 
 .closet-placeholder {
-  font: bold 25px/1 "Noto Sans KR" !important;
+  font: bold 25px/1 "KIMM_Bold" !important;
   margin: auto auto;
 }

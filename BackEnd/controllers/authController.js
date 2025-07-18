@@ -96,7 +96,7 @@ exports.getMyInfo = asyncHandler(async (req, res) => {
 
 // 내 정보 수정
 exports.updateMyInfo = asyncHandler(async (req, res) => {
-  const { name, height, gender } = req.body;
+  const { name, height, gender, weight } = req.body;
 
   const user = await User.findById(req.user.id);
   if (!user) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
@@ -104,6 +104,7 @@ exports.updateMyInfo = asyncHandler(async (req, res) => {
   if (name) user.name = name;
   if (height) user.height = height;
   if (gender && ['남', '여'].includes(gender)) user.gender = gender;
+  if (weight) user.weight = weight;
 
   await user.save();
   res.status(200).json({ message: '사용자 정보 수정 완료', user });

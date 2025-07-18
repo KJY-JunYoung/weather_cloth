@@ -85,6 +85,10 @@ button[type="submit"]:hover {
   background-color: #777;
 }
 
+.preview {
+  margin-bottom : 10px;
+}
+
 .buttonsModify {
   display: flex;
   width: 100%;

@@ -85,7 +85,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
   if (!cloth) {
     return (
       <div className="closet-detail-panel">
-        <p className="closet-placeholder">Please Choose Cloth Leftside :)</p>
+        <p className="closet-placeholder">CLICK YOUR CLOTH</p>
       </div>
     );
   }

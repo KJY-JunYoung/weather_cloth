@@ -3,7 +3,7 @@ function UnityViewer({ modelUrl }) {
   const iframeSrc = `http://localhost:3000/unity-viewer/index.html?model=${encodeURIComponent(modelUrl)}`;
 
   return (
-    <div style={{ width: "100%", height: "100%", border: "1px solid #333" }}>
+    <div style={{ width: "100%", height: "100%", border: "1px solid #333", backgroundColor: "#231F20" }}>
       <iframe
         title="Unity 3D Viewer"
         src={iframeSrc}

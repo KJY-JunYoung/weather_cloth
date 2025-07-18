@@ -89,21 +89,26 @@ const getClothes = asyncHandler(async (req, res) => {
 
 const deleteClothes = asyncHandler(async (req, res) => {
   const clothId = req.params.id;
-
   if (!clothId) {
     return res.status(400).json({ error: "삭제할 ID가 없습니다." });
   }
 
-  const result = await Cloth.deleteOne({
-    _id: clothId,
-    userId: req.user.id, // 본인 옷만 삭제되도록
-  });
-
-  if (result.deletedCount === 0) {
-    return res.status(404).json({ error: "삭제할 옷을 찾을 수 없습니다." });
+  const cloth = await Cloth.findOne({ _id: clothId, userId: req.user.id });
+  if (!cloth) {
+    return res.status(404).json({ error: "해당 옷을 찾을 수 없습니다." });
   }
 
-  res.json({ message: "선택된 옷 삭제 완료", deletedCount: result.deletedCount });
+  // 실제 파일 경로 삭제
+  if (cloth.imageUrl) {
+    const imagePath = path.join(__dirname, "..", "public", cloth.imageUrl);
+    fs.unlink(imagePath, (err) => {
+      if (err) console.error("파일 삭제 실패:", err);
+    });
+  }
+
+  // DB에서 삭제
+  await Cloth.deleteOne({ _id: clothId });
+  res.json({ message: "삭제 완료" });
 });
 
 

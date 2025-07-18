@@ -29,6 +29,16 @@ const clothesSchema = new mongoose.Schema({
     enum: ["top", "bottom"], // 상의/하의 구분
     required: true,
   },
+  subCategory: {
+    type: String,
+    enum: ["Tshirt, Shirt, Sweatshirt, Hoodie"],
+    required: false,
+  },
+  sleeve: {
+    type: String,
+    enum: ["Long", "Short"],
+    required: false,
+  },
   modelUrl: {
     type: String,
     required: false  // AI 처리 전에는 비어있을 수 있음
