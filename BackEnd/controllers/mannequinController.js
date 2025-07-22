@@ -3,13 +3,14 @@ const axios = require("axios");
 const FormData = require("form-data");       
 const fs = require("fs");                   
 const path = require("path");                
+const asyncHandler = require("express-async-handler")
 
 const Manequinn = require("../models/Mannequin"); 
 const User = require("../models/User");           
 
 exports.createMannequin = async (req, res, next) => {
   try {
-    const userId = req.userId;  
+    const userId = req.user.id;  
     const files = req.files;     
     
     // 이미지 유효성 검사
@@ -32,33 +33,56 @@ exports.createMannequin = async (req, res, next) => {
     });
 
     // FastAPI 서버에 POST 요청 전송
-    const response = await axios.post("http://localhost:8000/make-3d", formData, {
+    const response = await axios.post("http://localhost:8000/mannequin", formData, {
       headers: formData.getHeaders(),        
       maxBodyLength: Infinity,               
     });
 
-    const { model3DUrl } = response.data; 
+    const { modelUrl } = response.data; 
   
     // MongoDB에 마네킹 정보 저장
     const mannequin = new Manequinn({
       userId,
-      modelUrl: model3DUrl,
+      modelUrl: modelUrl,
     });
     await mannequin.save();
 
     // 해당 유저 문서에도 마네킹 생성 여부 및 URL 업데이트
     await User.findByIdAndUpdate(userId, {
       hasMannequin: true,
-      mannequinModelUrl: model3DUrl,
+      mannequinModelUrl: modelUrl,
     });
 
     // 클라이언트에게 성공 응답 반환
     res.status(201).json({
       message: "3D 마네킹 생성 완료",
-      modelUrl: model3DUrl,
+      modelUrl: modelUrl,
     });
   } catch (err) {
     console.error("마네킹 생성 중 오류:", err.message);
     next(err);
   }
 };
+
+exports.deleteMannequin = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  if (!userId) {
+    return res.status(400).json({ message: "유저 ID가 없습니다." });
+  }
+
+  const user = await User.findOne({ _id: userId });
+
+  if (!user) {
+    return res.status(404).json({ message: "유저를 찾을 수 없습니다." });
+  }
+  
+  if (!user.hasMannequin) {
+    return res.status(400).json({ message: "이미 마네킹이 없습니다." });
+  }
+
+  user.hasMannequin = false;
+  await user.save();
+
+  return res.status(200).json({ message: "마네킹 정보가 삭제되었습니다." });
+});

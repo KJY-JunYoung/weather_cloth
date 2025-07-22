@@ -10,11 +10,16 @@ const uploadCloth = asyncHandler(async (req, res) => {
       return res.status(400).json({ error: "파일이 없습니다." });
     }
 
-    const { userId, name, description, style, category, size } = req.body;  // 무조건 옷사이즈가 req 요청 객체에 있어야함 프론트에서 신경쓸 것
+    const { subCategory, name, description, style, category, size } = req.body;  // 무조건 옷사이즈가 req 요청 객체에 있어야함 프론트에서 신경쓸 것
 
     if (!["top", "bottom"].includes(category)) {
       return res.status(400).json({ error: "카테고리는 top 또는 bottom만 가능합니다." });
     }
+
+    if (!["T-shirt", "Shirt", "Hoodie", "Sweatshirt", "Skirt", "Pants", "Shorts"].includes(subCategory)) {
+      return res.status(400).json({ error: "서브 카테고리 오류" });
+    }
+
 
     if(!["XS", "S", "M", "L", "XL", "2XL"].includes(size)) {
       return res.status(400).json({ error: "사이즈를 선택해주세요." });
@@ -32,7 +37,7 @@ const uploadCloth = asyncHandler(async (req, res) => {
     const formData = new FormData();
     formData.append("image", fs.createReadStream(path.join(__dirname, "..", "public", "images", "clothes", req.file.filename)));
 
-    const response = await axios.post("http://localhost:8000/make-3d-cloth", formData, {
+    const response = await axios.post("http://localhost:8000/cloth-model", formData, {
       headers: formData.getHeaders()
     });
     
@@ -46,6 +51,7 @@ const uploadCloth = asyncHandler(async (req, res) => {
       category,
       name,
       description,
+      subCategory,
       style,
       color,
       size,
@@ -114,7 +120,7 @@ const deleteClothes = asyncHandler(async (req, res) => {
 
 const modifyCloth = asyncHandler(async (req, res) => {
   const clothId = req.params.id;
-  const { category, size, style, name, description, color } = req.body;
+  const { subCategory, category, size, style, name, description, color } = req.body;
 
   // 유효성 검사
   if (category && !["top", "bottom"].includes(category)) {
@@ -129,6 +135,10 @@ const modifyCloth = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "스타일을 선택해주세요." });
   }
 
+  if (subCategory && !["T-shirt", "Shirt", "Sweatshirt", "Hoodie", "Skirt", "Pants", "Shorts"].includes(subCategory)) {
+    return res.status(400).json({ error: "종류를 선택해주세요."})
+  }
+
   const cloth = await Cloth.findOne({ _id: clothId, userId: req.user.id });
   if (!cloth) {
     return res.status(404).json({ error: "옷을 찾을 수 없습니다." });
@@ -137,6 +147,7 @@ const modifyCloth = asyncHandler(async (req, res) => {
   if (category) cloth.category = category;
   if (size) cloth.size = size;
   if (style) cloth.style = style;
+  if (subCategory) cloth.subCategory = subCategory;
   if (name !== undefined) cloth.name = name;
   if (description !== undefined) cloth.description = description;
 

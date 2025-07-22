@@ -9,6 +9,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
     style: "casual",
     category: "top",
     size: "M",
+    subCategory: "",
     color: "",
   });
 
@@ -22,6 +23,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
     description: cloth.description || "",
     style: cloth.style || "casual",
     category: cloth.category || "top",
+    subCategory: cloth.subCategory,
     size: cloth.size || "M",
     color: clothColorString,
   };
@@ -92,6 +94,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
 
   return (
     <div className="closet-detail-panel">
+      <div className="closet-detail-panel-content">
       <img
         src={`http://localhost:3000${cloth.imageUrl}`}
         alt="옷 이미지"
@@ -120,6 +123,22 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
             <option value="top">TOP</option>
             <option value="bottom">BOTTOM</option>
           </select>
+
+          <label>KIND</label>
+          {form.category== "top"? <select name="subCategory" value={form.subCategory} onChange={handleChange} className="detail-input">
+            <option value="T-shirt">T-shirt</option>
+            <option value="Shirt">Shirt</option>
+            <option value="Sweatshirt">Sweatshirt</option>
+            <option value="Hoodie">Hoodie</option>
+          </select> : 
+          <select name="subCategory" value={form.subCategory} onChange={handleChange} className="detail-input">
+            <option value="Pants">Pants</option>
+            <option value="Shorts">Shorts</option>
+            <option value="Skirt">Skirt</option>
+          </select>
+          
+          }
+
 
           <label>SIZE</label>
           <select name="size" value={form.size} onChange={handleChange} className="detail-input">
@@ -150,6 +169,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
             <div><span>DESCRIPTION</span> <span>{form.description || "-"}</span></div>
             <div><span>STYLE</span> <span>{form.style}</span></div>
             <div><span>CATEGORY</span> <span>{form.category}</span></div>
+            <div><span>KIND</span> <span>{form.subCategory}</span></div>
             <div><span>SIZE</span> <span>{form.size}</span></div>
             <div><span>COLOR</span> <span>{form.color}</span></div>
           </div>
@@ -160,7 +180,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
         </div>
       )}
 
-     
+     </div>
     </div>
   );
 }

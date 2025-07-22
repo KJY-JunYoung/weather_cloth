@@ -8,6 +8,9 @@
   display: flex;
   justify-content: center;            /* 중앙 정렬 */
   align-items: flex-start;
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
 }
 
 .form-wrapper {

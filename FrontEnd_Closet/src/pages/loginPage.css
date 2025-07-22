@@ -156,11 +156,15 @@
 }
 
 .loginForm .register {
-  margin-top: 12px;
+  margin-top: 15px;
   font-size: 13px;
   color: #aaa;
   text-decoration: none;
   text-align: center;
   font: italic bold 12px/1 "KIMM_Bold", sans-serif;
   cursor: pointer;
+}
+
+.loginForm .register:hover {
+    color: white;
 }

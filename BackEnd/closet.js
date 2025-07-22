@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(cookieParser());
 app.use("/auth", authRouter);
-app.use("/api/manequinn", verifyToken, manequinnRouter);
+app.use("/api/mannequin", verifyToken, manequinnRouter);
 app.use("/api/cloth", verifyToken, clothRouter);
 app.use((req, res, next) => {
   const error = new Error(`❗ 요청한 경로 ${req.originalUrl} 를 찾을 수 없습니다.`);

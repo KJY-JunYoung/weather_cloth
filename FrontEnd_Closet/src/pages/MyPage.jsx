@@ -1,12 +1,15 @@
 import './myPage.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import UnityViewer from '../components/UnityViewer'
 import MyMenu from '../components/MyMenu'
+import Modal from '../components/Modal';
+import MannequinRegisterPage from './MannequinRegisterPage'
+
 
 function MyPage() {
   const token = localStorage.getItem("token");
-
   const [formData, setFormData] = useState({
+    hasMannequin: false,
     email: "",
     name: "",
     height: 0,
@@ -17,10 +20,19 @@ function MyPage() {
   const [userInfo, setUserInfo] = useState(null);  // 🔥 user 상태 추가
   const [clothInfo, setClothInfo] = useState(null);
   const [modify, setModify] = useState(false);
+  const [showEnroll, setShowEnroll] = useState(false)
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     const loadData = async () => {
       const data = await fetchMyInfo();
+      if (!data.user.hasMannequin && isFirstLoad.current) {
+      const wannaTry = window.confirm("마네킹이 없습니다. 하나 만드시겠습니까?");
+      if (wannaTry) {
+        setShowEnroll(true);
+      }
+      isFirstLoad.current = false; // ✅ 직접 바꾸고 끝
+    }
       setFormData({
         email: data.user.email,
         name: data.user.name,
@@ -28,17 +40,41 @@ function MyPage() {
         weight: data.user.weight,
         gender: data.user.gender,
       });
-      setUserInfo(data.user); // 🔥 상태로 저장
-
+      setUserInfo(data.user); //
       const clothData = await fetchClothInfo();
       setClothInfo(clothData);
-
     };
 
     loadData();
   }, []);
 
+
+  const topCounts = {
+  'T-shirt': 0,
+  'Shirt': 0,
+  'Sweatshirt': 0,
+  'Hoodie': 0,
+};
+const bottomCounts = {
+  'Pants': 0,
+  'Shorts': 0,
+  'Skirt': 0,
+};
+
+if (Array.isArray(clothInfo)) {
+  clothInfo.forEach(c => {
+    if (c.category === 'top' && topCounts[c.subCategory] !== undefined) {
+      topCounts[c.subCategory]++;
+    } else if (c.category === 'bottom' && bottomCounts[c.subCategory] !== undefined) {
+      bottomCounts[c.subCategory]++;
+    }
+  });
+}
 //   const fetchMyCloth
+  const deleteMyInfo = async () => {
+    const res = await fetch(`http://localhost:3000/me`, )
+  }
+
 
   const fetchMyInfo = async () => {
     const res = await fetch(`http://localhost:3000/auth/me`, {
@@ -65,7 +101,6 @@ const modifyMyInfo = async () => {
 
   const data = await res.json();
 
-  // 📌 userInfo 업데이트
   if (res.ok) {
     setUserInfo(data.user);  // 서버가 수정된 user 반환한다면
     setModify(false);
@@ -222,18 +257,18 @@ const modifyMyInfo = async () => {
               
               <div className="allInfo">
               <div className="topInfo">
-                <div><span>T-Shirt</span><span>12</span></div>
-                <div><span>Shirt</span><span>34</span></div>
-                <div><span>SweatShirt</span><span>56</span></div>
-                <div><span>Hoodie</span><span>78</span></div>
-                <div className='calcTop'><span>TOP</span><span>123</span></div>
+                <div><span>T-Shirt</span><span>{topCounts["T-shirt"]}</span></div>
+                <div><span>Shirt</span><span>{topCounts["Shirt"]}</span></div>
+                <div><span>Sweatshirt</span><span>{topCounts["Sweatshirt"]}</span></div>
+                <div><span>Hoodie</span><span>{topCounts["Hoodie"]}</span></div>
+                <div className='calcTop'><span>TOP</span><span>{Object.values(topCounts).reduce((a,b)=> a+b, 0)}</span></div>
               </div>
               <div className="bottomInfo">
-                <div><span>Pants</span><span>12</span></div>
-                <div><span>Shorts</span><span>34</span></div>
-                <div><span>Skirt</span><span>56</span></div>
+                <div><span>Pants</span><span>{bottomCounts["Pants"]}</span></div>
+                <div><span>Shorts</span><span>{bottomCounts["Shorts"]}</span></div>
+                <div><span>Skirt</span><span>{bottomCounts["Skirt"]}</span></div>
                 <div><span></span><span></span></div>
-                <div className='calcBottom'><span>BOTTOM</span><span>123</span></div>
+                <div className='calcBottom'><span>BOTTOM</span><span>{Object.values(bottomCounts).reduce((a,b)=> a+b, 0)}</span></div>
               </div>
               
               </div>
@@ -244,7 +279,12 @@ const modifyMyInfo = async () => {
             </div>
             </div>
             <div className="border"></div>
-            <MyMenu></MyMenu>
+            <MyMenu onOpen={()=>setShowEnroll(true)} userInfo={userInfo}/>
+            {showEnroll && (
+              <Modal onClose={() => setShowEnroll(false)}>
+                <MannequinRegisterPage onSuccess={()=>setShowEnroll(false)}/>
+              </Modal>
+            )}
             </div>
             
         </div>

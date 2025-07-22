@@ -31,7 +31,7 @@ const clothesSchema = new mongoose.Schema({
   },
   subCategory: {
     type: String,
-    enum: ["Tshirt, Shirt, Sweatshirt, Hoodie"],
+    enum: ["T-shirt", "Shirt", "Sweatshirt", "Hoodie", "Skirt", "Pants", "Shorts"],
     required: false,
   },
   sleeve: {

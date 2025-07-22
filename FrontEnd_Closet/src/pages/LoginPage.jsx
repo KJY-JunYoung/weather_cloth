@@ -58,6 +58,7 @@ function LoginPage() {
       </button>
 
       <Link to={"/register"} className='register'>Don't you have account yet?</Link>
+      <Link to={"/reset-password"} className='register'>Forgot your password?</Link>
     </div>
   );
 }

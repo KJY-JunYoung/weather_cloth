@@ -8,12 +8,14 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import WelcomePage from './pages/WelcomePage';
 
+
 import MainPage from './pages/MainPage';
 import MyClosetPage from './pages/MyClosetPage';
 import MyPage from './pages/MyPage';
 import VirtualFitting from './pages/VirtualFitting';
 import ClothRegisterPage from './pages/ClothRegisterPage';
-import ManequinnRegisterPage from './pages/ManequinnRegisterPage';
+import ChangePassword from './pages/ChangePassword';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -24,16 +26,18 @@ function App() {
           <Route path="/" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          
           {/* 로그인 필요한 경로 (PrivateRoute + Layout으로 감싸기) */}
           <Route element={<PrivateRoute />}>
             <Route element={<Layout />}>
               <Route path="/main" element={<MainPage />} />
               <Route path="/myCloset" element={<MyClosetPage />} />
               <Route path="/register-cloth" element={<ClothRegisterPage />} />
-              <Route path="/register-manequinn" element={<ManequinnRegisterPage />} />
               <Route path="/virtualFitting" element={<VirtualFitting />} />
               <Route path="/my-page" element = {<MyPage />} />
+              <Route path="/change-password" element = {<ChangePassword />} />
             </Route>
           </Route>
         </Routes>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./clothRegisterPage.css";
+import LoadingOverlay from '../components/LoadingOverlay'
 
 function ClothRegisterPage({ onClose, onSuccess }) {
   // const navigate = useNavigate();
@@ -9,16 +10,33 @@ function ClothRegisterPage({ onClose, onSuccess }) {
     description: "",
     style: "casual",
     category: "top",
+    subCategory: "T-shirt",
     size: "M",
     color: "",
   });
-
+  
+  const [loading, setLoading] = useState(false);
+  const [category, setCategory] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const { name, value } = e.target;
+
+  // 카테고리를 바꿨다면, subCategory도 같이 초기화
+  if (name === "category") {
+    const defaultSubCategory =
+      value === "top" ? "T-shirt" : "Pants";
+
+    setForm((prev) => ({
+      ...prev,
+      category: value,
+      subCategory: defaultSubCategory,
+    }));
+  } else {
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+};
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -28,6 +46,8 @@ function ClothRegisterPage({ onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    console.log("subCategory 확인:", form.subCategory);
 
     if (!imageFile) {
       alert("이미지를 업로드해주세요.");
@@ -52,19 +72,28 @@ function ClothRegisterPage({ onClose, onSuccess }) {
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error("옷 등록 실패");
-
+      if (!res.ok) {
+        const errData = await res.json();
+        console.error("서버 응답 오류:", errData);
+        throw new Error(errData.error || "옷 등록 실패");
+      }
+      setLoading(false);
       alert("ENROLL COMPLETE!");
       onSuccess();
       onClose(); 
+
     } catch (err) {
+      setLoading(false);
       console.error("등록 에러:", err);
       alert("❌ 등록 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false); // ✅ 무조건 꺼지게 보장
     }
   };
 
   return (
     <div className="cloth-register-page">
+      {loading && <LoadingOverlay message={"Making Cloth 3D Model"} />}
         <div className="form-wrapper">
       <h2>ENROLL CLOTH</h2>
       <form onSubmit={handleSubmit} className="clothrp">
@@ -93,6 +122,23 @@ function ClothRegisterPage({ onClose, onSuccess }) {
           <option value="bottom">BOTTOM</option>
         </select>
 
+        <label>SUB CATEGORY</label>
+        {form.category === "top" && (
+  <select name="subCategory" value={form.subCategory} onChange={handleChange}>
+    <option value="T-shirt">T-shirt</option>
+    <option value="Shirt">Shirt</option>
+    <option value="Sweatshirt">Sweatshirt</option>
+    <option value="Hoodie">Hoodie</option>
+  </select>
+)}
+
+{form.category === "bottom" && (
+  <select name="subCategory" value={form.subCategory} onChange={handleChange}>
+    <option value="Pants">Pants</option>
+    <option value="Shorts">Shorts</option>
+    <option value="Skirt">Skirt</option>
+  </select>
+)}
         <label>SIZE</label>
         <select name="size" value={form.size} onChange={handleChange}>
           <option value="XS">XS</option>

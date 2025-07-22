@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const asyncHandler = require("express-async-handler");
 const Cloth = require('../models/Cloth');
 const Manequinn = require('../models/Mannequin');
+const crypto = require("crypto");
+const { sendResetEmail } = require("../utils/mailer");
 
 //  회원가입 API
 exports.register = asyncHandler(async (req, res) => {
@@ -143,21 +145,88 @@ exports.findEmail = asyncHandler(async (req, res) => {
 });
 
 
-// 비밀번호 재설정 (Reset Password)
 exports.resetPassword = asyncHandler(async (req, res) => {
-  const { email, newPassword } = req.body;
+  const { token, newPassword } = req.body;
 
-  // 사용자 존재 여부 확인
-  const user = await User.findOne({ email });
+  const user = await User.findOne({
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
   if (!user) {
-    return res.status(404).json({ message: "등록된 이메일이 없습니다." });
+    return res.status(400).json({ message: "유효하지 않거나 만료된 토큰입니다." });
   }
 
-  // 새 비밀번호 암호화
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  user.password = hashedPassword;
-
+  const hashed = await bcrypt.hash(newPassword, 10);
+  user.password = hashed;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
   await user.save();
 
-  res.status(200).json({ message: "비밀번호가 성공적으로 재설정되었습니다." });
+  res.status(200).json({ message: "비밀번호가 성공적으로 변경되었습니다." });
 });
+
+exports.changePassword = asyncHandler(async (req, res) => {
+  const userId = req.user.id; // JWT에서 추출
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+  }
+
+  // 현재 비밀번호 확인
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    return res.status(401).json({ message: "현재 비밀번호가 일치하지 않습니다." });
+  }
+
+  // 새 비밀번호 저장
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  await user.save();
+
+  res.status(200).json({ message: "비밀번호가 성공적으로 변경되었습니다." });
+});
+
+exports.deleteAccount = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({ message: "유저가 없습니다." });
+  }
+  await Cloth.deleteMany({ userId: req.user.id });
+
+  await User.deleteOne({ _id: req.user.id });
+
+  res.json({ message: "계정이 삭제되었습니다." });
+
+});
+
+// controllers/authController.js
+
+
+exports.requestResetPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "해당 이메일을 가진 사용자가 없습니다." });
+  }
+
+  // 1시간 유효한 랜덤 토큰 생성 (JWT 말고 UUID도 가능)
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = Date.now() + 1000 * 60 * 60; // 1시간
+
+  // 토큰 DB에 저장
+  user.resetPasswordToken = token;
+  user.resetPasswordExpires = new Date(expires);
+  await user.save();
+
+  console.log("📦 생성된 토큰:", token);
+  console.log("🕐 expires:", new Date(expires));
+  // 이메일 전송
+  await sendResetEmail(user.email, token);
+
+  res.status(200).json({ message: "비밀번호 재설정 이메일이 전송되었습니다." });
+});
+
