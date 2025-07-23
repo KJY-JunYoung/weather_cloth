@@ -2,11 +2,10 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import './myMenu.css'
 
-function MyMenu({onOpen, userInfo}) {
+function MyMenu({onOpen, onSuccess, userInfo}) {
     const token = localStorage.getItem("token"); // ✅ 가져오기
     const navigate = useNavigate();   
     const deleteAccount = async () => {
-  
     const flag = window.confirm("Do you really wanna delete it?")
     if (!flag) {
         return;
@@ -48,7 +47,7 @@ function MyMenu({onOpen, userInfo}) {
   if (!flag) return;
 
   try {
-    const res = await fetch("http://localhost:3000/api/mannequin", {
+    const res = await fetch("http://localhost:3000/api/mannequin/delete-mannequin", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -62,7 +61,7 @@ function MyMenu({onOpen, userInfo}) {
     if (res.ok) {
       alert("마네킹이 성공적으로 삭제되었습니다.");
       // 상태 갱신
-      setUserInfo(prev => ({ ...prev, hasMannequin: false }));
+      onSuccess();
     } else {
       alert(`삭제 실패: ${data.message || "서버 오류"}`);
     }

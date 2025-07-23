@@ -2,28 +2,29 @@ import { useState } from "react";
 import LoadingOverlay from "../components/LoadingOverlay";
 import './mannequinRegisterPage.css';
 
-function MannequinRegisterPage({onSuccess}) {
-  const [images, setImages] = useState([]);
+function MannequinRegisterPage({ onSuccess }) {
+  const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setImages(files);
-    setPreview(files.length > 0 ? URL.createObjectURL(files[0]) : null);
+    const file = e.target.files[0];
+    setImage(file);
+    setPreview(file ? URL.createObjectURL(file) : null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    if (!images || images.length < 1 || images.length > 3) {
-      alert("이미지는 1~3장만 업로드 가능합니다.");
-      setLoading(false);
+    if (!image) {
+      alert("이미지를 선택해주세요.");
       return;
     }
 
+    setLoading(true);
+
     const formData = new FormData();
-    images.forEach((img) => formData.append("images", img));
+    formData.append("mannequin", image); // ✅ 필드명 일치
+
     const token = localStorage.getItem("token");
 
     try {
@@ -37,17 +38,14 @@ function MannequinRegisterPage({onSuccess}) {
 
       const data = await res.json();
       if (res.ok) {
-        setLoading(false);
         alert("3D 마네킹 생성 완료!");
         onSuccess();
         console.log("modelUrl:", data.modelUrl);
       } else {
-        setLoading(false);
         alert("생성 실패: " + data.message);
       }
     } catch (err) {
       console.error("업로드 오류", err);
-      setLoading(false);
       alert("서버 오류 발생");
     } finally {
       setLoading(false);
@@ -56,14 +54,13 @@ function MannequinRegisterPage({onSuccess}) {
 
   return (
     <div className="MannequinRegisterPage">
-      {loading && <LoadingOverlay message={"Making New Mannequin"}/>}
+      {loading && <LoadingOverlay message="Making New Mannequin" />}
       <h2 className="MannequinTitle">ENROLL MANNEQUIN</h2>
       <form onSubmit={handleSubmit} className="formWrapper">
         <input
           type="file"
-          name="images"
+          name="mannequin"
           accept="image/*"
-          multiple
           onChange={handleFileChange}
           className="fileInput"
         />

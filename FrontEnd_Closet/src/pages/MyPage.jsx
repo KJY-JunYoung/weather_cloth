@@ -76,18 +76,23 @@ if (Array.isArray(clothInfo)) {
   }
 
 
-  const fetchMyInfo = async () => {
-    const res = await fetch(`http://localhost:3000/auth/me`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-    });
+const fetchMyInfo = async () => {
+  const res = await fetch(`http://localhost:3000/auth/me`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+  });
 
-    const data = await res.json();
-    return data;
-  };
+  if (!res.ok) {
+    console.error("❌ 사용자 정보 가져오기 실패:", res.status);
+    return null;
+  }
+
+  const data = await res.json();
+  return data;
+};
 
 const modifyMyInfo = async () => {
   const res = await fetch(`http://localhost:3000/auth/me`, {
@@ -279,10 +284,38 @@ const modifyMyInfo = async () => {
             </div>
             </div>
             <div className="border"></div>
-            <MyMenu onOpen={()=>setShowEnroll(true)} userInfo={userInfo}/>
+            {userInfo && (
+                  <MyMenu
+                    userInfo={userInfo}
+                    onOpen={() => {
+                      if(userInfo.hasMannequin==false){
+                        setShowEnroll(true)
+                      } else {
+                        alert("You already have mannequin");
+                        return;
+                      }} 
+                      }
+                      
+                    onSuccess={async () => {
+                      const updated = await fetchMyInfo();
+                      setUserInfo(updated.user);
+                    }}
+                  />
+                )}
             {showEnroll && (
               <Modal onClose={() => setShowEnroll(false)}>
-                <MannequinRegisterPage onSuccess={()=>setShowEnroll(false)}/>
+                <MannequinRegisterPage
+                  onSuccess={async () => {
+                  console.log("✅ Mannequin 등록 완료됨, fetchMyInfo 호출");
+                  const updated = await fetchMyInfo();
+                  if (updated && updated.user) {
+                    setUserInfo(updated.user);
+                    setShowEnroll(false);
+                  } else {
+                    alert("유저 정보를 불러오는 데 실패했습니다.");
+                  }
+                }}
+                />
               </Modal>
             )}
             </div>

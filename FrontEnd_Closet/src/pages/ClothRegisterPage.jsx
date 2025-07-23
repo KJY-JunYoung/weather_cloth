@@ -57,7 +57,7 @@ function ClothRegisterPage({ onClose, onSuccess }) {
     const token = localStorage.getItem("token");
 
     const formData = new FormData();
-    formData.append("image", imageFile);
+    formData.append("clothes", imageFile);
     Object.entries(form).forEach(([key, value]) => {
       formData.append(key, value);
     });

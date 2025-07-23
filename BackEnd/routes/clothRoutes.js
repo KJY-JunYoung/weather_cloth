@@ -19,7 +19,7 @@ const {
 router
   .route("/")
   .get(verifyToken, getClothes)  // 여기에 직접 붙이기
-  .post(verifyToken, upload.single("image"), uploadCloth);
+  .post(verifyToken, upload.single("clothes"), uploadCloth);
 
 router
 .route("/:id")
