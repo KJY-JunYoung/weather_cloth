@@ -7,45 +7,31 @@ const asyncHandler = require("express-async-handler")
 
 const Manequinn = require("../models/Mannequin"); 
 const User = require("../models/User");           
+const { mannequinGenerationQueue } = require("../utils/queueService");
 
-exports.createMannequin = async (req, res, next) => {
-  try {
-    const userId = req.user.id;  
-    const file = req.file;
+exports.createMannequin = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const file = req.file;
 
-    if (!file) {
-      return res.status(400).json({ message: "이미지를 업로드해주세요." });
-    }
-
-    const filePath = path.join(__dirname, "..", "public", "images", "mannequins", file.filename);
-    const stream = fs.createReadStream(filePath); 
-
-    const formData = new FormData();
-    formData.append("images", stream, file.originalname);
-
-    const response = await axios.post("http://localhost:8000/mannequin", formData, {
-      headers: formData.getHeaders(),
-      maxBodyLength: Infinity,
-    });
-
-    const { modelUrl } = response.data;
-
-    await new Manequinn({ userId, modelUrl }).save();
-    await User.findByIdAndUpdate(userId, {
-      hasMannequin: true,
-      mannequinModelUrl: modelUrl,
-      imageURL: `/images/mannequins/${file.filename}`  // ✅ 경로 저장
-    });
-
-    res.status(201).json({
-      message: "3D 마네킹 생성 완료",
-      modelUrl,
-    });
-  } catch (err) {
-    console.error("마네킹 생성 중 오류:", err.message);
-    next(err);
+  if (!file) {
+    return res.status(400).json({ message: "이미지를 업로드해주세요." });
   }
-};
+
+  const filePath = path.join(__dirname, "..", "public", "images", "mannequins", file.filename);
+  if (!fs.existsSync(filePath)) return res.status(500).json({ error: "파일 저장 실패" });
+
+  console.log(filePath);
+  console.log(file.filename);
+  await mannequinGenerationQueue.add("generateMannequin", {
+    userId,
+    imagePath: filePath,
+    fileName: file.filename,
+  });
+
+  res.status(202).json({
+    message: "마네킹 생성 요청이 접수되었습니다. 완료 후 자동 반영됩니다.",
+  });
+});
 
 
 
