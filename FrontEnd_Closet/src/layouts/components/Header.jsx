@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 function Header() {
   const logout = async () => {
     try {
-      await fetch("http://localhost:3000/auth/logout", {
+      await fetch("http://15.164.220.164:3000/auth/logout", {
         method: "POST", // 보통 로그아웃은 POST로 처리
         credentials: "include", // 쿠키 포함 (중요)
       });

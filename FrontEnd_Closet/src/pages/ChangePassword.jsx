@@ -25,7 +25,7 @@ function ChangePassword() {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/auth/change-password", {
+      const res = await fetch("http://15.164.220.164:3000/auth/change-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

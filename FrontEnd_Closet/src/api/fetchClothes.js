@@ -1,5 +1,5 @@
 // src/api/fetchClothes.js
-const BASE_URL = "http://localhost:3000/api/cloth";
+const BASE_URL = "http://15.164.220.164:3000/api/cloth";
 
 export async function fetchClothesByCategory(category) {
   const token = localStorage.getItem("token");

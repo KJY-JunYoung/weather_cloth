@@ -63,7 +63,7 @@ function ClothRegisterPage({ onClose, onSuccess }) {
     });
 
     try {
-      const res = await fetch("http://localhost:3000/api/cloth", {
+      const res = await fetch("http://15.164.220.164:3000/api/cloth", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -28,7 +28,7 @@ function MannequinRegisterPage({ onSuccess }) {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch("http://localhost:3000/api/mannequin/make-3d", {
+      const res = await fetch("http://15.164.220.164:3000/api/mannequin/make-3d", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -9,7 +9,7 @@ const Cloth = require("../models/Cloth");
 const Mannequin = require("../models/Mannequin");
 const User = require("../models/User");
 
-const redisConnection = { host: 'localhost', port: 6379 };
+const redisConnection = { host: '15.164.220.164', port: 6379 };
 
 // ========================
 // 🧍‍♂️ 마네킹 큐 + 워커
@@ -26,7 +26,7 @@ const mannequinGenerationWorker = new Worker("mannequinGenerationQueue", async j
     const form = new FormData();
     form.append("image", fs.createReadStream(imagePath));
 
-    const response = await axios.post("http://localhost:8000/mannequin", form, {
+    const response = await axios.post("http://15.164.220.164:8000/mannequin", form, {
       headers: form.getHeaders(),
       maxBodyLength: Infinity,
     });
@@ -72,7 +72,7 @@ const clothProcessingWorker = new Worker("clothProcessingQueue", async job => {
     form.append("image", fs.createReadStream(imagePath));
     form.append("cloth_id", job.id);
 
-    const response = await axios.post("http://localhost:8000/cloth-model", form, {
+    const response = await axios.post("http://15.164.220.164/cloth-model", form, {
       headers: form.getHeaders(),
       maxBodyLength: Infinity,
     });

@@ -49,7 +49,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
         .filter(Boolean),
     };
 
-    const res = await fetch(`http://localhost:3000/api/cloth/${cloth._id}`, {
+    const res = await fetch(`http://15.164.220.164:3000/api/cloth/${cloth._id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -70,7 +70,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
 
   const handleDelete = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:3000/api/cloth/${cloth._id}`, {
+    const res = await fetch(`http://15.164.220.164:3000/api/cloth/${cloth._id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -96,7 +96,7 @@ function ClothDetailPanel({ cloth, onUpdate, onDelete }) {
     <div className="closet-detail-panel">
       <div className="closet-detail-panel-content">
       <img
-        src={`http://localhost:3000${cloth.imageUrl}`}
+        src={`http://15.164.220.164:3000${cloth.imageUrl}`}
         alt="옷 이미지"
         className="detail-image"
       />

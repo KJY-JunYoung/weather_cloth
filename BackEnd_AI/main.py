@@ -14,7 +14,7 @@ async def generate_mannequin(image: UploadFile = File(...)):
     print(f"AI 서버에서 받은 전신사진 이미지: {image.filename}, 크기: {len(contents)} 바이트")
     return {
         "status": "success",
-        "modelUrl": "http://localhost:5000/static/models/fake-user.glb"
+        "modelUrl": "http://15.164.220.164:5000/static/models/fake-user.glb"
     }
 
 @app.post("/cloth-model", response_model=ModelResponse)
@@ -23,5 +23,5 @@ async def generate_cloth(image: UploadFile = File(...)):
     print(f"AI 서버에서 받은 옷 이미지: {image.filename}, 크기: {len(contents)} 바이트")
     return {
         "status": "success",
-        "modelUrl": "http://localhost:5000/static/models/fake-cloth.glb"
+        "modelUrl": "http://15.164.220.164:5000/static/models/fake-cloth.glb"
     }

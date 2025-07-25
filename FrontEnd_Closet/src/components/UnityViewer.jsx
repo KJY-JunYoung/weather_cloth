@@ -1,6 +1,6 @@
 // src/components/UnityViewer.jsx
 function UnityViewer({ modelUrl }) {
-  const iframeSrc = `http://localhost:3000/unity-viewer/index.html?model=${encodeURIComponent(modelUrl)}`;
+  const iframeSrc = `http://15.164.220.164:3000/unity-viewer/index.html?model=${encodeURIComponent(modelUrl)}`;
 
   return (
     <div style={{ width: "100%", height: "100%", border: "1px solid #333", backgroundColor: "#231F20" }}>
