@@ -1,4 +1,43 @@
+version: '3'
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
   redis:
     image: redis:7.2-alpine
+    container_name: redis
     ports:
       - "6379:6379"
+
+  backend:
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/mycloset
+      - JWT_SECRET=my_secret_key
+      - PORT=3000
+    depends_on:
+      - mongo
+      - redis
+
+  frontend:
+    build:
+      context: ./FrontEnd_Closet
+      dockerfile: Dockerfile.front
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
