@@ -15,12 +15,16 @@ const clothesSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  style: {
+  // style: {
+  //   type: String,
+  //   enum: ['casual', 'formal', 'sporty', 'street', 'other'],
+  //   default: 'casual'
+  // },
+  imageUrlFront: {
     type: String,
-    enum: ['casual', 'formal', 'sporty', 'street', 'other'],
-    default: 'casual'
+    required: true,
   },
-  imageUrl: {
+  imageUrlBack: {
     type: String,
     required: true,
   },
@@ -34,24 +38,24 @@ const clothesSchema = new mongoose.Schema({
     enum: ["T-shirt", "Shirt", "Sweatshirt", "Hoodie", "Skirt", "Pants", "Shorts"],
     required: false,
   },
-  sleeve: {
-    type: String,
-    enum: ["Long", "Short"],
-    required: false,
-  },
+  // sleeve: {
+  //   type: String,
+  //   enum: ["Long", "Short"],
+  //   required: false,
+  // },
   modelUrl: {
     type: String,
     required: false  // AI 처리 전에는 비어있을 수 있음
   },
-  size: {
-    type: String,
-    enum: ["XS", "S", "M", "L", "XL", "2XL"],
-    required: true
-  },
-  color: {
-  type: [String],
-  default: []
-  },
+  // size: {
+  //   type: String,
+  //   enum: ["XS", "S", "M", "L", "XL", "2XL"],
+  //   required: true
+  // },
+  // color: {
+  // type: [String],
+  // default: []
+  // },
   uploadedAt: {
     type: Date,
     default: Date.now,

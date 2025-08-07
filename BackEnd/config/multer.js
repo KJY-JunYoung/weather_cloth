@@ -1,24 +1,33 @@
-// config/multer.js
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // file.fieldname 또는 req.url, req.body.type 등으로 분기 가능
-    let folder = "clothes"; // 기본값
+    const userId = req.body.userId;
+    const clothId = req.body.clothId || `cloth_${Date.now()}`;
+
+    if (!userId) return cb(new Error("userId가 필요합니다."), null);
+
+    let dest;
 
     if (file.fieldname === "mannequin") {
-      folder = "mannequins";
+      dest = path.join(__dirname, "..", "data", `user_${userId}`, "mannequin");
+    } else {
+      dest = path.join(__dirname, "..", "data", `user_${userId}`, "clothes", clothId);
     }
 
-    cb(null, path.join(__dirname, "..", "public", "images", folder));
+    fs.mkdirSync(dest, { recursive: true });
+    cb(null, dest);
   },
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + "-" + file.originalname;
-    cb(null, uniqueName);
+    const timestamp = Date.now();
+    const filename = `${timestamp}-${file.fieldname}${path.extname(file.originalname)}`;
+    cb(null, filename);
   },
 });
 
+// ✅ multer 인스턴스를 생성해서 export
 const upload = multer({ storage });
 
 module.exports = upload;

@@ -67,3 +67,40 @@ exports.deleteMannequin = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "마네킹 및 사진 정보가 삭제되었습니다." });
 });
 
+
+// 상태 조회 컨트롤러
+exports.getMannequinStatus = async (req, res) => {
+  const userId = req.query.userId;
+  if (!userId) return res.status(400).json({ message: "userId is required" });
+
+  try {
+    const jobs = await mannequinGenerationQueue.getJobs(["waiting", "active", "completed", "failed"]);
+    const recentJob = jobs.reverse().find(job => job.data.userId === userId);
+
+    if (!recentJob) {
+      return res.status(404).json({ status: "not_found" });
+    }
+
+    const status = await recentJob.getState();
+
+    if (status === "completed") {
+      const mannequin = await Mannequin.findOne({ userId });
+      return res.json({
+        status: "completed",
+        modelUrl: mannequin?.modelUrl || null,
+      });
+    }
+
+    if (status === "failed") {
+      return res.json({
+        status: "failed",
+        error: recentJob.failedReason,
+      });
+    }
+
+    return res.json({ status }); // active, waiting 등
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "서버 오류" });
+  }
+};

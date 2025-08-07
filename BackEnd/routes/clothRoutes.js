@@ -9,21 +9,35 @@ router.use((req, res, next) => {
 });
 
 const { 
-   uploadCloth, 
-   getClothes, 
-   deleteClothes, 
-   modifyCloth
- } = require("../controllers/clothesController");
-
-
+  uploadCloth, 
+  getClothes, 
+  deleteClothes, 
+  modifyCloth,
+  getClothStatus
+} = require("../controllers/clothesController");
+console.log("🔍 getClothes:", getClothes);
+// 📌 전체 옷 목록 조회 + 옷 등록
 router
   .route("/")
-  .get(verifyToken, getClothes)  // 여기에 직접 붙이기
-  .post(verifyToken, upload.single("clothes"), uploadCloth);
+  .get(verifyToken, getClothes)
+  .post(
+    verifyToken,
+    upload.fields([
+      { name: "cloth_front", maxCount: 1 },
+      { name: "cloth_back", maxCount: 1 }
+    ]),
+    uploadCloth
+  );
 
+
+router.get("/status/:jobId", getClothStatus);
+// 📌 특정 옷 수정 / 삭제
 router
-.route("/:id")
-.patch(modifyCloth)
-.delete(verifyToken, deleteClothes);  // 특정 옷 ID에 대한 수정
+  .route("/:id")
+  .patch(verifyToken, modifyCloth)
+  .delete(verifyToken, deleteClothes);
+
+// 📌 AI 작업 상태 조회
+
 
 module.exports = router;
