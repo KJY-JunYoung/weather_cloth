@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './registerPage.css'
-console.log("🔧 RegisterPage 렌더링됨");
 
 function RegisterPage() {
   const navigate = useNavigate(); 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./clothRegisterPage.css";
 import LoadingOverlay from '../components/LoadingOverlay'
@@ -8,40 +8,54 @@ function ClothRegisterPage({ onClose, onSuccess }) {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    style: "casual",
+    // style: "casual",
     category: "top",
     subCategory: "T-shirt",
-    size: "M",
-    color: "",
+    // size: "M",
+    // color: "",
   });
   
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [imageFileFront, setImageFileFront] = useState(null);
+  const [imageFileBack, setImageFileBack] = useState(null);
+  const [previewFront, setPreviewFront] = useState(null);
+  const [previewBack, setPreviewBack] = useState(null);
+
+  useEffect(() => {
+  return () => {
+    if (previewFront) URL.revokeObjectURL(previewFront);
+    if (previewBack) URL.revokeObjectURL(previewBack);
+  };
+}, [previewFront, previewBack]);
 
   const handleChange = (e) => {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  // 카테고리를 바꿨다면, subCategory도 같이 초기화
-  if (name === "category") {
-    const defaultSubCategory =
-      value === "top" ? "T-shirt" : "Pants";
+    // 카테고리를 바꿨다면, subCategory도 같이 초기화
+    if (name === "category") {
+      const defaultSubCategory =
+        value === "top" ? "T-shirt" : "Pants";
 
-    setForm((prev) => ({
-      ...prev,
-      category: value,
-      subCategory: defaultSubCategory,
-    }));
-  } else {
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
-};
+      setForm((prev) => ({
+        ...prev,
+        category: value,
+        subCategory: defaultSubCategory,
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
+    if (e.target.name === "front") {
+      setImageFileFront(file);
+      setPreviewFront(URL.createObjectURL(file));
+    } else {
+      setImageFileBack(file);
+      setPreviewBack(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -49,19 +63,22 @@ function ClothRegisterPage({ onClose, onSuccess }) {
     setLoading(true);
     console.log("subCategory 확인:", form.subCategory);
 
-    if (!imageFile) {
-      alert("이미지를 업로드해주세요.");
+    if (!imageFileFront || !imageFileBack) {
+      alert("앞면과 뒷면 이미지를 모두 업로드해주세요.");
+      setLoading(false);
       return;
     }
 
     const token = localStorage.getItem("token");
 
     const formData = new FormData();
-    formData.append("clothes", imageFile);
+    formData.append("cloth_front", imageFileFront);
+    formData.append("cloth_back", imageFileBack);
     Object.entries(form).forEach(([key, value]) => {
       formData.append(key, value);
     });
-
+    const userId = localStorage.getItem("userId"); // 또는 토큰 디코딩해서 추출
+    formData.append("userId", userId);
     try {
       const res = await fetch("http://localhost:3000/api/cloth", {
         method: "POST",
@@ -97,9 +114,13 @@ function ClothRegisterPage({ onClose, onSuccess }) {
         <div className="form-wrapper">
       <h2>ENROLL CLOTH</h2>
       <form onSubmit={handleSubmit} className="clothrp">
-        <label>IMAGE</label>
-        <input type="file" accept="image/*" onChange={handleImageChange} />
-        {preview && <img src={preview} alt="미리보기" className="preview" />}
+        <label>IMAGE-FRONT</label>
+        <input type="file" name="front" accept="image/*" onChange={handleImageChange} />
+        {previewFront && <img src={previewFront} alt="front 미리보기" className="preview" />}
+
+        <label>IMAGE-BACK</label>
+        <input type="file" name="back" accept="image/*" onChange={handleImageChange} />
+        {previewBack && <img src={previewBack} alt="back 미리보기" className="preview" />}
 
         <label>NAME</label>
         <input name="name" value={form.name} onChange={handleChange} required />
@@ -107,14 +128,14 @@ function ClothRegisterPage({ onClose, onSuccess }) {
         <label>DESCRIPTION</label>
         <input name="description" value={form.description} onChange={handleChange} />
 
-        <label>STYLE</label>
+        {/* <label>STYLE</label>
         <select name="style" value={form.style} onChange={handleChange}>
           <option value="casual">CASUAL</option>
           <option value="formal">FORMAL</option>
           <option value="sporty">SPORTY</option>
           <option value="street">STREET</option>
           <option value="other">ETC</option>
-        </select>
+        </select> */}
 
         <label>CATEGORY</label>
         <select name="category" value={form.category} onChange={handleChange}>
@@ -139,7 +160,7 @@ function ClothRegisterPage({ onClose, onSuccess }) {
     <option value="Skirt">Skirt</option>
   </select>
 )}
-        <label>SIZE</label>
+        {/* <label>SIZE</label>
         <select name="size" value={form.size} onChange={handleChange}>
           <option value="XS">XS</option>
           <option value="S">S</option>
@@ -147,15 +168,15 @@ function ClothRegisterPage({ onClose, onSuccess }) {
           <option value="L">L</option>
           <option value="XL">XL</option>
           <option value="2XL">2XL</option>
-        </select>
+        </select> */}
 
-        <label>COLORS</label>
+        {/* <label>COLORS</label>
         <input
           name="color"
           value={form.color}
           onChange={handleChange}
           placeholder="white, black"
-        />
+        /> */}
         <button type="submit" className="enrollButton">ENROLL</button>
         <button onClick={onClose} className="modal-close">✖</button>
       </form>
