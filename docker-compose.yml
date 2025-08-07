@@ -1,7 +1,7 @@
-version: '3'
+version: '3.8'
 services:
   mongo:
-    image: mongo
+    image: mongo:7.0
     container_name: mongo
     ports:
       - "27017:27017"
@@ -21,10 +21,8 @@ services:
     container_name: backend
     ports:
       - "3000:3000"
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/mycloset
-      - JWT_SECRET=my_secret_key
-      - PORT=3000
+    env_file:
+      - ./BackEnd/.env
     depends_on:
       - mongo
       - redis
