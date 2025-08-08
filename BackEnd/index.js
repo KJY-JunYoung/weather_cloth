@@ -15,8 +15,10 @@ const cors = require("cors");
 
 const app = express();
 
+
+
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "http://15.165.159.112:5173",
   credentials: true
 }))
 // cors 설정
@@ -40,6 +42,6 @@ app.use(errorHandler);
 dbConnect();
 
 const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 서버 실행 중: http://0.0.0.0:${PORT}`);
 });

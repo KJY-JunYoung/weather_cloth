@@ -30,7 +30,7 @@ const mannequinGenerationWorker = new Worker(
       const form = new FormData();
       form.append("image", fs.createReadStream(imagePath));
 
-      const response = await axios.post("http://fastapi-ai:8000/mannequin", form, {
+      const response = await axios.post("http://15.165.159.112:8000/mannequin", form, {
         headers: form.getHeaders(),
         maxBodyLength: Infinity,
       });
@@ -99,7 +99,7 @@ const clothProcessingWorker = new Worker(
       form.append("category", category);
       form.append("subCategory", subCategory);
 
-      const response = await axios.post("http://fastapi-ai:8000/cloth-model", form, {
+      const response = await axios.post("http://15.165.159.112:8000/cloth-model", form, {
         headers: form.getHeaders(),
         maxBodyLength: Infinity,
       });

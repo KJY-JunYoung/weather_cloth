@@ -80,7 +80,7 @@ function ClothRegisterPage({ onClose, onSuccess }) {
     const userId = localStorage.getItem("userId"); // 또는 토큰 디코딩해서 추출
     formData.append("userId", userId);
     try {
-      const res = await fetch("http://localhost:3000/api/cloth", {
+      const res = await fetch("http://15.165.159.112:3000/api/cloth", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -13,7 +13,7 @@ function LoginPage() {
       if (email === "admin") {
         navigate("/")
       }
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch('http:///15.165.159.112:3000/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

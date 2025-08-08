@@ -3,14 +3,14 @@ version: '3.8'  # Docker Compose 파일 형식 버전
 services:  # 여기서부터 각 컨테이너 정의 시작
 
   node-backend:  # Node.js 백엔드 서버
-    build: ./Backend  # Backend 폴더의 Dockerfile을 사용해서 컨테이너 이미지 생성
+    build: ./BackEnd  # Backend 폴더의 Dockerfile을 사용해서 컨테이너 이미지 생성
     ports:
       - "3000:3000"  # 로컬 포트 3000 → 컨테이너 포트 3000 연결
     volumes:
-      - ./Backend:/app  # 코드 변경 시 컨테이너 내부에 자동 반영 (개발용)
-    
+      - ./BackEnd:/app  # 코드 변경 시 컨테이너 내부에 자동 반영 (개발용)
+
     env_file:  # ✅ 여기에 .env 파일을 지정!
-      - ./Backend/.env
+      - ./BackEnd/.env
     # environment:
       # - MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/mydb
       #   # ✅ MongoDB Atlas 주소를 환경변수로 전달
@@ -19,12 +19,12 @@ services:  # 여기서부터 각 컨테이너 정의 시작
     depends_on:
       - redis  # 이 서비스 실행 전에 redis 컨테이너부터 먼저 시작해야 함
 
-  fastapi-ai:  # FastAPI 기반 AI 서버
-    build: ./BackEnd_AI  # BackEnd_AI 폴더의 Dockerfile로 이미지 빌드
-    ports:
-      - "8000:8000"  # 로컬 포트 8000 → 컨테이너 포트 8000 연결
-    volumes:
-      - ./BackEnd_AI:/app  # 코드 변경 자동 반영
+  # fastapi-ai:  # FastAPI 기반 AI 서버
+  #   build: ./BackEnd_AI  # BackEnd_AI 폴더의 Dockerfile로 이미지 빌드
+  #   ports:
+  #     - "8000:8000"  # 로컬 포트 8000 → 컨테이너 포트 8000 연결
+  #   volumes:
+  #     - ./BackEnd_AI:/app  # 코드 변경 자동 반영
 
   redis:  # Redis 서버 (BullMQ 등 큐/캐시용으로 사용)
     image: redis:8.0.3  # 가볍고 빠른 Redis 공식 이미지 사용

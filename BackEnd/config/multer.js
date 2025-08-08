@@ -4,7 +4,7 @@ const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const userId = req.body.userId;
+    const userId = req.user.id;
     const clothId = req.body.clothId || `cloth_${Date.now()}`;
 
     if (!userId) return cb(new Error("userId가 필요합니다."), null);
