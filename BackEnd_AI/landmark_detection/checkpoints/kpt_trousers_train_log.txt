@@ -1,0 +1,80 @@
+Epoch 001 (lr 0.0010000)
+Train:      time 322.96 loss: 12.0565 loss1: 5.4613 loss2: 6.5951
+Validation: time 27.99 loss: 9.0718 loss1: 3.9595 loss2: 5.1123
+
+Epoch 002 (lr 0.0010000)
+Train:      time 318.76 loss: 8.5011 loss1: 3.7404 loss2: 4.7607
+Validation: time 28.24 loss: 7.5412 loss1: 3.2724 loss2: 4.2687
+
+Epoch 003 (lr 0.0010000)
+Train:      time 317.55 loss: 7.7207 loss1: 3.3667 loss2: 4.3540
+Validation: time 27.83 loss: 7.1629 loss1: 3.1278 loss2: 4.0351
+
+Epoch 004 (lr 0.0010000)
+Train:      time 319.00 loss: 7.0933 loss1: 3.0818 loss2: 4.0115
+Validation: time 27.99 loss: 7.0341 loss1: 3.0622 loss2: 3.9719
+
+Epoch 005 (lr 0.0010000)
+Train:      time 317.64 loss: 6.9344 loss1: 3.0102 loss2: 3.9242
+Validation: time 27.98 loss: 6.6782 loss1: 2.8828 loss2: 3.7954
+
+Epoch 006 (lr 0.0010000)
+Train:      time 319.05 loss: 6.5709 loss1: 2.8508 loss2: 3.7201
+Validation: time 28.52 loss: 6.3548 loss1: 2.6883 loss2: 3.6665
+
+Epoch 007 (lr 0.0010000)
+Train:      time 319.13 loss: 6.3784 loss1: 2.7561 loss2: 3.6223
+Validation: time 27.33 loss: 6.4927 loss1: 2.7926 loss2: 3.7001
+
+Epoch 008 (lr 0.0010000)
+Train:      time 318.08 loss: 6.1954 loss1: 2.6726 loss2: 3.5229
+Validation: time 27.93 loss: 6.1641 loss1: 2.6065 loss2: 3.5576
+
+Epoch 009 (lr 0.0010000)
+Train:      time 318.68 loss: 6.0058 loss1: 2.5841 loss2: 3.4218
+Validation: time 28.62 loss: 5.9728 loss1: 2.5154 loss2: 3.4574
+
+Epoch 010 (lr 0.0010000)
+Train:      time 318.91 loss: 5.8674 loss1: 2.5251 loss2: 3.3424
+Validation: time 28.10 loss: 5.8033 loss1: 2.4382 loss2: 3.3651
+
+Epoch 011 (lr 0.0010000)
+Train:      time 320.07 loss: 5.7716 loss1: 2.4809 loss2: 3.2906
+Validation: time 28.32 loss: 6.0412 loss1: 2.5828 loss2: 3.4585
+
+Epoch 012 (lr 0.0010000)
+Train:      time 318.57 loss: 5.6765 loss1: 2.4413 loss2: 3.2352
+Validation: time 27.89 loss: 5.7609 loss1: 2.4229 loss2: 3.3380
+
+Epoch 013 (lr 0.0010000)
+Train:      time 319.54 loss: 5.5653 loss1: 2.3905 loss2: 3.1748
+Validation: time 27.89 loss: 5.7522 loss1: 2.4370 loss2: 3.3152
+
+Epoch 014 (lr 0.0010000)
+Train:      time 317.95 loss: 5.4796 loss1: 2.3558 loss2: 3.1238
+Validation: time 27.65 loss: 5.6883 loss1: 2.4122 loss2: 3.2762
+
+Epoch 015 (lr 0.0010000)
+Train:      time 317.88 loss: 5.3764 loss1: 2.3079 loss2: 3.0685
+Validation: time 28.12 loss: 5.6459 loss1: 2.3756 loss2: 3.2703
+
+Epoch 016 (lr 0.0010000)
+Train:      time 318.34 loss: 5.4670 loss1: 2.3470 loss2: 3.1200
+Validation: time 28.04 loss: 5.8779 loss1: 2.4780 loss2: 3.3999
+
+Epoch 017 (lr 0.0010000)
+Train:      time 317.53 loss: 5.2664 loss1: 2.2578 loss2: 3.0086
+Validation: time 27.80 loss: 5.5467 loss1: 2.3527 loss2: 3.1940
+
+Epoch 018 (lr 0.0010000)
+Train:      time 316.78 loss: 5.2699 loss1: 2.2614 loss2: 3.0085
+Validation: time 27.29 loss: 5.5633 loss1: 2.3819 loss2: 3.1814
+
+Epoch 019 (lr 0.0010000)
+Train:      time 317.74 loss: 5.1200 loss1: 2.2039 loss2: 2.9161
+Validation: time 28.07 loss: 5.4410 loss1: 2.3008 loss2: 3.1402
+
+Epoch 020 (lr 0.0010000)
+Train:      time 317.32 loss: 5.0929 loss1: 2.1882 loss2: 2.9046
+Validation: time 28.01 loss: 5.5138 loss1: 2.3064 loss2: 3.2074
+
