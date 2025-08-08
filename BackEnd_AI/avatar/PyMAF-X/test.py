@@ -3,8 +3,8 @@ import json
 import numpy as np
 import os
 
-pkl_path = "output/test_single4/output.pkl"
-output_json_path = "~/smplify-x/test/test_single4/keypoints/test4_keypoints.json"
+pkl_path = "output/test_single/output.pkl"
+output_json_path = "~/smplify-x/test/test_single/keypoints/test_keypoints.json"
 
 output_json_path = os.path.expanduser(output_json_path)
 

@@ -21,7 +21,7 @@ coll_loss_weights:
 - 0.01
 - 1.0
 config: cfg_files/fit_smplx.yaml
-data_folder: ./test/test_single4
+data_folder: ./test/test_single
 data_weights:
 - 1
 - 1
