@@ -35,7 +35,7 @@ def a_pose_body_pose() -> torch.Tensor:
 
     return torch.tensor(pose).unsqueeze(0)
 
-def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: str = 'neutral') -> Dict[str, float]:
+def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: str = 'neutral', target_height_cm: float = None) -> Dict[str, float]:
     """
     SMPL-X 파라미터 기반으로 T-pose와 A-pose 조합으로 신체 치수 측정 (cm 단위)
     """
@@ -93,7 +93,6 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
     waist_y = joints_t[3, 1]
     hip_y = joints_t[1, 1] - 0.02
     tol = 0.01
-    correction = 0.92
 
     chest_circumference_cm = slice_circumference(vertices_t, chest_y, tol)
     waist_circumference_cm = slice_circumference(vertices_t, waist_y, tol)
@@ -123,7 +122,7 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
     ) * 100
     leg_length_cm = (left_leg_len + right_leg_len) / 2
 
-    return {
+    measurements = {
         "height_cm": height_cm,
         "shoulder_width_cm": shoulder_width_cm,
         "chest_circumference_cm": chest_circumference_cm,
@@ -132,3 +131,10 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
         "arm_length_cm": arm_length_cm,
         "leg_length_cm": leg_length_cm
     }
+
+    # 비율 보정
+    if target_height_cm and height_cm > 0:
+        scale = target_height_cm / height_cm
+        measurements = {k: v * scale for k, v in measurements.items()}
+
+    return measurements

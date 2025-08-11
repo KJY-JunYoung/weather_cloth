@@ -205,10 +205,10 @@ def main(**args):
         keypoints = data['keypoints']
         print('Processing: {}'.format(data['img_path']))
 
-        curr_result_folder = osp.join(result_folder, fn)
+        curr_result_folder = osp.join(result_folder)
         if not osp.exists(curr_result_folder):
             os.makedirs(curr_result_folder)
-        curr_mesh_folder = osp.join(mesh_folder, fn)
+        curr_mesh_folder = osp.join(mesh_folder)
         if not osp.exists(curr_mesh_folder):
             os.makedirs(curr_mesh_folder)
         for person_id in range(keypoints.shape[0]):
@@ -220,8 +220,8 @@ def main(**args):
             curr_mesh_fn = osp.join(curr_mesh_folder,
                                     '{:03d}.obj'.format(person_id))
 
-            curr_img_folder = osp.join(output_folder, 'images', fn,
-                                       '{:03d}'.format(person_id))
+            curr_img_folder = osp.join(output_folder, 'images'
+                                       .format(person_id))
             if not osp.exists(curr_img_folder):
                 os.makedirs(curr_img_folder)
 

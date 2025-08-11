@@ -52,7 +52,7 @@ def run_demo(args):
         raise RuntimeError(f"Failed to read first image: {image_names[0]}")
     img_shape = img0.shape
 
-    output_path = osp.join(args.output_folder, osp.split(image_folder)[-1])
+    output_path = args.output_folder
     os.makedirs(output_path, exist_ok=True)
 
     print(f'Input images: {num_frames}  |  First image shape: {img_shape}')
@@ -309,7 +309,7 @@ def run_demo(args):
 
     total_time = time.time() - total_time
     print(f'Total time spent for reconstruction: {total_time:.2f} seconds (including model loading time).')
-    print('================= END =================')
+    print('================= PyMAF-X END =================')
 
 
 class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter,
