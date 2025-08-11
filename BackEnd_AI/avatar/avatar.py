@@ -40,8 +40,8 @@ import numpy as np
 # Base paths (repo‑specific)
 # =========================
 BASE_DIR = Path(__file__).resolve().parent          # BackEnd_AI
-AVATAR_DIR = BASE_DIR / "avatar"                    # contains PyMAF-X, smplify-x
-DATA_ROOT = BASE_DIR.parent / "data"                       # data/<user_id>/...
+AVATAR_DIR = BASE_DIR                               # contains PyMAF-X, smplify-x
+DATA_ROOT = BASE_DIR.parent.parent / "data"         # data/<user_id>/...
 
 # =========================
 # Config dataclass

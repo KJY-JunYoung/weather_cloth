@@ -7,3 +7,5 @@ __pycache__/
 data/*
 !data/
 !data/.gitkeep
+
+BackEnd_AI/avatar/PyMAF-X/test/*
