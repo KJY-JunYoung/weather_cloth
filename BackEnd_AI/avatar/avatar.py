@@ -494,8 +494,8 @@ def main():
             print("[Measurements]")
             for k in [
                 "height_cm", "shoulder_width_cm", "chest_circumference_cm",
-                "waist_circumference_cm", "hip_circumference_cm",
-                "arm_length_cm", "leg_length_cm",
+                "waist_circumference_cm", "waist_FB_cm", "waist_LR_cm",  
+                "hip_circumference_cm", "arm_length_cm", "leg_length_cm",
             ]:
                 if k in measurements:
                     print(f"  - {k}: {measurements[k]}")

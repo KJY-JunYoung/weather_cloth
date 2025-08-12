@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from smplx import SMPLX
 from typing import Dict
-from .utils_geometry import slice_circumference, slice_width_x
+from .utils_geometry import slice_circumference, slice_width_x, slice_width_z
 
 def load_pkl_safe(path):
     """pkl/joblib 파일 안전하게 로드"""
@@ -86,7 +86,7 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
 
     # 어깨 너비는 A-포즈 기준 convex hull 기반으로 계산
     shoulder_y = (joints_a[16, 1] + joints_a[17, 1]) / 2
-    shoulder_width_cm = slice_width_x(vertices_a, shoulder_y, tol=0.01, z_threshold=0.02)
+    shoulder_width_cm = slice_width_x(vertices_a, shoulder_y, tol=0.01)
 
     # Circumference (T-pose 기준)
     chest_y = (joints_t[1, 1] + joints_t[2, 1]) / 2
@@ -96,6 +96,8 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
 
     chest_circumference_cm = slice_circumference(vertices_t, chest_y, tol)
     waist_circumference_cm = slice_circumference(vertices_t, waist_y, tol)
+    waist_FB_cm = slice_width_z(vertices_t, waist_y, tol=tol)
+    waist_LR_cm = slice_width_x(vertices_t, waist_y, tol=tol)
     hip_circumference_cm = slice_circumference(vertices_t, hip_y, tol)
 
     # Arm Length
@@ -127,6 +129,8 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
         "shoulder_width_cm": shoulder_width_cm,
         "chest_circumference_cm": chest_circumference_cm,
         "waist_circumference_cm": waist_circumference_cm,
+        "waist_FB_cm" : waist_FB_cm,
+        "waist_LR_cm" : waist_LR_cm,
         "hip_circumference_cm": hip_circumference_cm,
         "arm_length_cm": arm_length_cm,
         "leg_length_cm": leg_length_cm
