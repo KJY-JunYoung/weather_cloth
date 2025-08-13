@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 function Header() {
   const logout = async () => {
     try {
-      await fetch("http://localhost:3000/auth/logout", {
+      await fetch("http://15.165.129.131:3000/auth/logout", {
         method: "POST", // 보통 로그아웃은 POST로 처리
         credentials: "include", // 쿠키 포함 (중요)
       });
@@ -16,7 +16,8 @@ function Header() {
   return (
     <header>
       <div className="inner">
-        <Link to="/main" className="logo2 glitch">ISECLOTH</Link>
+        <Link to="/main" className="logo2">I</Link>
+        {/* <Link to="/main" className="logo2 glitch">I</Link> */}
 
         <nav>
           <ul>

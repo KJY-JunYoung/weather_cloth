@@ -34,7 +34,7 @@ function RegisterPage() {
   console.log("📦 서버로 보낼 데이터:", dataToSend);
 
   try {
-    const res = await fetch("http://localhost:3000/auth/register", {
+    const res = await fetch("http://15.165.129.131:3000/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

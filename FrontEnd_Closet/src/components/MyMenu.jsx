@@ -12,7 +12,7 @@ function MyMenu({onOpen, onSuccess, userInfo}) {
     }      
 
     try {
-    const res = await fetch(`http://localhost:3000/auth/me`, {
+    const res = await fetch(`http://15.165.129.131t:3000/auth/me`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +47,7 @@ function MyMenu({onOpen, onSuccess, userInfo}) {
   if (!flag) return;
 
   try {
-    const res = await fetch("http://localhost:3000/api/mannequin/delete-mannequin", {
+    const res = await fetch("http://15.165.129.131:3000/api/mannequin/delete-mannequin", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

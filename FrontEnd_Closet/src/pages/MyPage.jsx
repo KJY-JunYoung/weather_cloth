@@ -72,12 +72,12 @@ if (Array.isArray(clothInfo)) {
 }
 //   const fetchMyCloth
   const deleteMyInfo = async () => {
-    const res = await fetch(`http://localhost:3000/me`, )
+    const res = await fetch(`http://15.165.129.131:3000/me`, )
   }
 
 
 const fetchMyInfo = async () => {
-  const res = await fetch(`http://localhost:3000/auth/me`, {
+  const res = await fetch(`http://15.165.129.131:3000/auth/me`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -95,7 +95,7 @@ const fetchMyInfo = async () => {
 };
 
 const modifyMyInfo = async () => {
-  const res = await fetch(`http://localhost:3000/auth/me`, {
+  const res = await fetch(`http://15.165.129.131:3000/auth/me`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -115,7 +115,7 @@ const modifyMyInfo = async () => {
 };
 
   const fetchClothInfo = async () => {
-    const res = await fetch(`http://localhost:3000/api/cloth`, {
+    const res = await fetch(`http://15.165.129.131:3000/api/cloth`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

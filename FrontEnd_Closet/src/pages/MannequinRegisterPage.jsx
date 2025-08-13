@@ -25,7 +25,7 @@ function MannequinRegisterPage({ onSuccess }) {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/api/mannequin/make-3d", {
+      const res = await fetch("http://15.165.129.131:3000/api/mannequin/make-3d", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -55,7 +55,7 @@ function MannequinRegisterPage({ onSuccess }) {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/mannequin/status?userId=${userId}`);
+        const res = await fetch(`http://15.165.129.131:3000/api/mannequin/status?userId=${userId}`);
         const data = await res.json();
 
         if (data.status === "completed") {

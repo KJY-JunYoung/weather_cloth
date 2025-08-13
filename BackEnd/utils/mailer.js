@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendResetEmail = async (to, token) => {
-  const resetUrl = `http://localhost:5173/reset-password/${token}`;
+  const resetUrl = `http://15.165.129.131:5173/reset-password/${token}`;
 
   await transporter.sendMail({
     from: `"ISECLOTH Support" <${process.env.MAIL_USER}>`,

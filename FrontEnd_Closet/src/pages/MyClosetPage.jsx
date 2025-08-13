@@ -25,7 +25,7 @@ function MyClosetPage() {
   }
 
   try {
-    const res = await fetch("http://localhost:3000/api/cloth", {
+    const res = await fetch("http://15.165.129.131:3000/api/cloth", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -78,7 +78,7 @@ function MyClosetPage() {
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3000/api/cloth", {
+    const res = await fetch("http://15.165.129.131:3000/api/cloth", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

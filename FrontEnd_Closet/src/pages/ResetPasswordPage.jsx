@@ -18,7 +18,7 @@ function ResetPasswordPage() {
     e.preventDefault();
     setLoading(true);
     
-    const res = await fetch("http://localhost:3000/auth/request-reset", {
+    const res = await fetch("http://15.165.129.131:3000/auth/request-reset", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -42,7 +42,7 @@ function ResetPasswordPage() {
       return;
     }
 
-    const res = await fetch("http://localhost:3000/auth/reset-password", {
+    const res = await fetch("http://15.165.129.131:3000/auth/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, newPassword }),

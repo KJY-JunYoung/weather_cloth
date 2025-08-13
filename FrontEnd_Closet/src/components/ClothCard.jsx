@@ -6,7 +6,7 @@ function ClothCard({ cloth, onEdit, isSelected }) {
       className={`cloth-card ${isSelected ? "selected" : ""}`}
       onClick={() => onEdit(cloth)}
     >
-      <img src={`http://localhost:3000${cloth.imageUrl}`} alt={cloth.name} />
+      <img src={`http://15.165.129.131:3000${cloth.imageUrl}`} alt={cloth.name} />
       <p>{cloth.name}</p>
     </div>
   );
