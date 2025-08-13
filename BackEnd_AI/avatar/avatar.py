@@ -1,32 +1,28 @@
 #!/usr/bin/env python3
 """
-BackEnd_AI/main.py — End-to-end pipeline for weather_cloth (UPDATED PATHS)
+BackEnd_AI/main.py — End-to-end pipeline for weather_cloth (EXIF in-place/copy + UMA split JSON)
 
-New I/O rules (single user at a time):
+I/O (single user at a time):
   - Input images:   data/<user_id>/avatar/
   - Output results: data/<user_id>/avatar_output/
       • PyMAF outputs:     data/<user_id>/avatar_output/pymaf/
       • SMPLify-X outputs: data/<user_id>/avatar_output/smplifyx/
-      • Unified JSON, measurements, keypoints JSON are written under avatar_output/
+      • Unified JSON (+ measurements, UMA JSON) are written under avatar_output/
 
 Pipeline order (final):
-  PyMAF-X → (β/PKL) → keypoints JSON → SMPLify-X → measure_body (last)
+  PyMAF-X → (β/PKL) → keypoints JSON → SMPLify-X → measure_body (last) → UMA compute
 
-Other design:
-  - Gender forced to 'male'
+Design notes:
+  - Gender forced to 'male' for measurements
   - Measurements via PyMAF-X/core/measure_body.py::measure_full_body_from_params
-  - PyMAF-X & SMPLify-X repos live under BackEnd_AI/avatar/
-
-Usage:
-  cd weather_cloth/BackEnd_AI
-  python main.py user123                       # uses data/user123/avatar as input
-  python main.py user123 /custom/path/images   # custom input folder
-  python main.py user123 --no_smplifyx         # skip SMPLify-X
+  - UMA via PyMAF-X/core/uma_converter.py::uma_from_measurements (dict-in → dict-out)
+  - EXIF Orientation: mode selectable: copy / inplace / off
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import pickle
 import subprocess
 import sys
@@ -36,8 +32,15 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+# === EXIF 처리용 ===
+try:
+    from PIL import Image, ImageOps
+    _PIL_AVAILABLE = True
+except Exception:
+    _PIL_AVAILABLE = False
+
 # =========================
-# Base paths (repo‑specific)
+# Base paths (repo-specific)
 # =========================
 BASE_DIR = Path(__file__).resolve().parent          # BackEnd_AI
 AVATAR_DIR = BASE_DIR                               # contains PyMAF-X, smplify-x
@@ -74,7 +77,6 @@ DEFAULTS = Config(
     SMPLIFYX_CFG=AVATAR_DIR / "smplify-x" / "cfg_files" / "fit_smplx.yaml",
 )
 
-
 # =========================
 # Utilities
 # =========================
@@ -105,9 +107,95 @@ def to_joints2d_list(arr: Any) -> List[List[float]]:
         a = np.concatenate([a, conf], axis=1)
     return a.astype(float).tolist()
 
+# =========================
+# EXIF Orientation Normalize
+# =========================
+
+IMG_EXTS = {".jpg", ".jpeg", ".png", ".bmp"}
+
+def _save_with_same_suffix(im: "Image.Image", out_path: Path) -> None:
+    suffix = out_path.suffix.lower()
+    if suffix in {".jpg", ".jpeg"}:
+        if im.mode not in ("RGB", "L"):
+            im = im.convert("RGB")
+        im.save(out_path, format="JPEG", quality=95, optimize=True)
+    elif suffix == ".png":
+        im.save(out_path, format="PNG", optimize=True)
+    elif suffix == ".bmp":
+        im.save(out_path, format="BMP")
+    else:
+        out_path = out_path.with_suffix(".png")
+        im.save(out_path, format="PNG", optimize=True)
+
+def normalize_images_with_exif(image_folder: Path, mode: str = "copy") -> Path:
+    """
+    mode='copy'   : <image_folder>_exifnorm 폴더에 정규화된 이미지를 복사 저장
+    mode='inplace': 원본 파일을 안전하게 덮어쓰기 (tmp에 저장 후 원자적 교체)
+    mode='off'    : 아무것도 하지 않음 (호출부에서 분기)
+    """
+    if not _PIL_AVAILABLE:
+        print("[EXIF] Pillow가 없어 EXIF 정규화를 건너뜁니다.")
+        return image_folder
+
+    images = sorted([p for p in image_folder.iterdir()
+                     if p.is_file() and p.suffix.lower() in IMG_EXTS])
+
+    if not images:
+        return image_folder
+
+    if mode == "copy":
+        out_dir = image_folder.parent / f"{image_folder.name}_exifnorm"
+        ensure_dir(out_dir)
+
+        # 이미 동일 파일명이 모두 있으면 재처리 생략
+        if all((out_dir / p.name).exists() for p in images):
+            print(f"[EXIF] Found normalized folder: {out_dir}. Using it.")
+            return out_dir
+
+        print(f"[EXIF] Normalizing {len(images)} images → {out_dir}")
+        for p in images:
+            try:
+                with Image.open(p) as im:
+                    im = ImageOps.exif_transpose(im)
+                    _save_with_same_suffix(im, out_dir / p.name)
+            except Exception as e:
+                print(f"[EXIF][warn] {p.name}: {e}. 건너뜀.")
+        return out_dir
+
+    if mode == "inplace":
+        print(f"[EXIF] In-place normalizing {len(images)} images in {image_folder}")
+        for p in images:
+            tmp_path = p.with_suffix(p.suffix + ".tmp")
+            try:
+                with Image.open(p) as im:
+                    im = ImageOps.exif_transpose(im)
+                    # 저장 시 EXIF(특히 ORIENTATION) 제거 → 재실행해도 추가 회전 없음
+                    if p.suffix.lower() in {".jpg", ".jpeg"}:
+                        if im.mode not in ("RGB", "L"):
+                            im = im.convert("RGB")
+                        im.save(tmp_path, format="JPEG", quality=95, optimize=True)
+                    elif p.suffix.lower() == ".png":
+                        im.save(tmp_path, format="PNG", optimize=True)
+                    elif p.suffix.lower() == ".bmp":
+                        im.save(tmp_path, format="BMP")
+                    else:
+                        print(f"[EXIF][skip] unsupported ext: {p.name}")
+                        continue
+                os.replace(tmp_path, p)  # 원자적 교체
+            except Exception as e:
+                try:
+                    if tmp_path.exists():
+                        tmp_path.unlink()
+                except Exception:
+                    pass
+                print(f"[EXIF][warn] {p.name}: {e}. 건너뜀.")
+        return image_folder
+
+    print(f"[EXIF] Unknown mode '{mode}', skipping.")
+    return image_folder
 
 # =========================
-# PyMAF‑X → PKL
+# PyMAF-X → PKL
 # =========================
 
 def run_pymaf_on_folder(cfg: Config, image_folder: Path, force: bool = False) -> Path:
@@ -130,7 +218,6 @@ def run_pymaf_on_folder(cfg: Config, image_folder: Path, force: bool = False) ->
 
     run(cmd, cwd=cfg.PYMAF_X_DIR)
     return out_dir
-
 
 # =========================
 # PKL → JSON (+ keypoints)
@@ -165,7 +252,6 @@ def load_pymaf_pkl(pkl_path: Path) -> Dict[str, Any]:
     except Exception:
         import joblib
         return joblib.load(pkl_path)
-
 
 
 def extract_pymaf_fields(raw: Dict[str, Any]) -> Dict[str, Any]:
@@ -224,13 +310,13 @@ def extract_pymaf_fields(raw: Dict[str, Any]) -> Dict[str, Any]:
 
     return {"pymaf": pymaf, "gender": gender}
 
-
 def write_unified_json(json_out: Path, image_path: Path, extracted: Dict[str, Any],
                        measurements: Optional[Dict[str, Any]] = None,
-                       smplifyx_refined: Optional[Dict[str, Any]] = None) -> None:
+                       smplifyx_refined: Optional[Dict[str, Any]] = None,
+                       uma: Optional[Dict[str, Any]] = None) -> None:
     data = {
         "image": image_path.name,
-        "gender_config": {           # ← 파이프라인 성격을 명확히
+        "gender_config": {
             "pymaf": "neutral",
             "smplifyx": "neutral",
             "measure": "male",
@@ -241,10 +327,11 @@ def write_unified_json(json_out: Path, image_path: Path, extracted: Dict[str, An
     }
     if smplifyx_refined:
         data["smplifyx"].update({"refined": True, **smplifyx_refined})
+    if uma:
+        data["uma"] = uma
     ensure_dir(json_out.parent)
     with open(json_out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
 
 def write_openpose_like(json_path: Path, joints2d, image_w: Optional[int] = None, image_h: Optional[int] = None) -> None:
     """
@@ -254,29 +341,24 @@ def write_openpose_like(json_path: Path, joints2d, image_w: Optional[int] = None
     import numpy as np, json
     arr = np.asarray(joints2d, dtype=float)
 
-    # 배치 차원 들어오면 첫 번째만 사용
     if arr.ndim == 3:
         arr = arr[0]
-    # (N, ?) → (N,3)로 정규화 (conf 없으면 1.0 채움)
     if arr.shape[1] < 3:
         conf = np.ones((arr.shape[0], 1), dtype=float)
         arr = np.concatenate([arr[:, :2], conf], axis=1)
     else:
         arr = arr[:, :3]
 
-    # 25×3 배열 만들고 앞 17개만 채움, 나머지는 0
     keypoints_25 = np.zeros((25, 3), dtype=float)
     n = min(17, arr.shape[0])
     keypoints_25[:n] = arr[:n]
 
-    # 평탄화
     flat = keypoints_25.reshape(-1).astype(float).tolist()
 
     content = {
-        "version": 1.2,                    # 기존 성공 포맷에 맞춤
+        "version": 1.2,
         "people": [{
             "pose_keypoints_2d": flat,
-            # 스키마 충족용(지금은 hands/face OFF로 실행하니 비워둠)
             "hand_left_keypoints_2d": [],
             "hand_right_keypoints_2d": [],
             "face_keypoints_2d": [],
@@ -288,9 +370,8 @@ def write_openpose_like(json_path: Path, joints2d, image_w: Optional[int] = None
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(content, f, ensure_ascii=False)
 
-
 # =========================
-# Measurements (via PyMAF‑X/core/measure_body.py)
+# Measurements (via PyMAF-X/core/measure_body.py)
 # =========================
 
 def compute_measurements_from_sources(cfg: Config, extracted: Dict[str, Any], refined: Optional[Dict[str, Any]], target_height_cm: Optional[float] = None) -> Optional[Dict[str, Any]]:
@@ -299,7 +380,8 @@ def compute_measurements_from_sources(cfg: Config, extracted: Dict[str, Any], re
     없으면 PyMAF betas로 측정.
     """
     try:
-        sys.path.insert(0, str(cfg.PYMAF_X_DIR))
+        if str(cfg.PYMAF_X_DIR) not in sys.path:
+            sys.path.insert(0, str(cfg.PYMAF_X_DIR))
         from core.measure_body import measure_full_body_from_params  # type: ignore
     except Exception as e:
         print(f"[measure] import failed: {e}")
@@ -318,15 +400,37 @@ def compute_measurements_from_sources(cfg: Config, extracted: Dict[str, Any], re
     params = {"betas": betas}
     smplx_model_path = str(cfg.MODEL_DIR)
     try:
-        result = measure_full_body_from_params(params, smplx_model_path=smplx_model_path, gender="male", target_height_cm=target_height_cm)
+        result = measure_full_body_from_params(
+            params,
+            smplx_model_path=smplx_model_path,
+            gender="male",
+            target_height_cm=target_height_cm
+        )
         return result if isinstance(result, dict) else None
     except Exception as e:
         print(f"[measure] measure_full_body_from_params failed: {e}")
         return None
 
+def compute_uma_from_measurements(cfg: Config, measurements: Dict[str, Any]) -> Optional[Dict[str, float]]:
+    """
+    measure_body 결과(measurements)로 UMA만 계산해서 반환.
+    """
+    try:
+        if str(cfg.PYMAF_X_DIR) not in sys.path:
+            sys.path.insert(0, str(cfg.PYMAF_X_DIR))
+        from core.uma_converter import uma_from_measurements  # type: ignore
+    except Exception as e:
+        print(f"[UMA] import failed: {e}")
+        return None
+
+    try:
+        return uma_from_measurements(measurements)  # 딕셔너리 그대로 전달
+    except Exception as e:
+        print(f"[UMA] compute failed: {e}")
+        return None
 
 # =========================
-# SMPLify‑X
+# SMPLify-X
 # =========================
 
 def run_smplifyx(cfg: Config, image_path: Path, keypoints_json: Path, out_dir: Path) -> None:
@@ -337,19 +441,15 @@ def run_smplifyx(cfg: Config, image_path: Path, keypoints_json: Path, out_dir: P
         "--output_folder", str(out_dir),
         "--model_folder", str(cfg.MODEL_DIR.parent),        # .../avatar/PyMAF-X/data
         "--data_folder", str(image_path.parent),
-        # 폴더 단위 입력
         "--img_folder", str(image_path.parent),
         "--keyp_folder", str(keypoints_json.parent),
-        # 품질/기능 토글
         "--visualize", "False",
         "--gender", "neutral",
         "--use_hands", "False",
         "--use_face", "False",
         "--use_face_contour", "False",
-        # joints conf 비사용 (NaN 방지에 도움)        # 충돌 손실 OFF (mesh_intersection 불필요)
         "--interpenetration", "False",
         "--max_collisions", "0",
-        # VPoser & priors
         "--vposer_ckpt", str((cfg.SMPLIFYX_DIR / "vposer_v1_0").resolve()),
         "--prior_folder", str((cfg.SMPLIFYX_DIR / "src" / "human-body-prior" / "support_data" / "priors").resolve()),
     ]
@@ -357,21 +457,17 @@ def run_smplifyx(cfg: Config, image_path: Path, keypoints_json: Path, out_dir: P
         cmd += ["--config", str(cfg.SMPLIFYX_CFG)]
     run(cmd, cwd=cfg.SMPLIFYX_DIR)
 
-
-
 def read_smplifyx_result(out_dir: Path, image_path: Path) -> Optional[Dict[str, Any]]:
     results_dir = out_dir / "results"
     if not results_dir.exists():
         print(f"[SMPLify-X] No results directory: {results_dir}")
         return None
 
-    # results/*.pkl만 검색
     pkls = sorted(results_dir.glob("*.pkl"))
     if not pkls:
         print(f"[SMPLify-X] No pkl files in {results_dir}")
         return None
 
-    # 최신 파일 선택
     best = max(pkls, key=lambda p: p.stat().st_mtime)
     print(f"[SMPLify-X] Using result: {best}")
 
@@ -389,35 +485,34 @@ def read_smplifyx_result(out_dir: Path, image_path: Path) -> Optional[Dict[str, 
 
     return out
 
-
-
 # =========================
 # Main
 # =========================
 
 def main():
-    ap = argparse.ArgumentParser(description="PyMAF‑X → JSON → (opt) SMPLify‑X + measurements (single user)")
+    ap = argparse.ArgumentParser(description="PyMAF-X → JSON → (opt) SMPLify-X + measurements(+UMA) (single user)")
     ap.add_argument("user_id", type=str, help="User ID (reads data/<user_id>/avatar, writes data/<user_id>/avatar_output)")
     ap.add_argument("images", type=str, nargs="?", help="Optional: custom images folder. Default: data/<user_id>/avatar")
     ap.add_argument("--target_height_cm", type=float, default=None, help="User Height (Adjust measurements based on target height (cm))")
-    ap.add_argument("--force_pymaf", action="store_true", help="Force re‑run PyMAF even if PKLs exist")
+    ap.add_argument("--force_pymaf", action="store_true", help="Force re-run PyMAF even if PKLs exist")
     ap.add_argument("--skip_pymaf", action="store_true", help="Skip running PyMAF (assume PKLs exist)")
-    ap.add_argument("--no_smplifyx", action="store_true", help="Disable SMPLify‑X refinement")
+    ap.add_argument("--no_smplifyx", action="store_true", help="Disable SMPLify-X refinement")
+    ap.add_argument("--exif_mode", choices=["copy", "inplace", "off"], default="inplace",
+                    help="EXIF normalize mode: copy (default), inplace (overwrite originals), off (disable)")
     args = ap.parse_args()
 
     cfg = DEFAULTS
 
-    # User‑scoped I/O folders (UPDATED)
+    # User-scoped I/O folders
     user_input_dir = DATA_ROOT / args.user_id / "avatar"
     user_output_dir = DATA_ROOT / args.user_id / "avatar_output"
     pymaf_out_dir = user_output_dir / "pymaf"
     smplifyx_out_dir = user_output_dir / "smplifyx"
 
-    # Ensure base dirs
     ensure_dir(user_input_dir)
     ensure_dir(user_output_dir)
 
-    # Override config with user‑scoped paths
+    # Override config with user-scoped paths
     cfg.PYMAF_OUT_DIR = pymaf_out_dir
     cfg.JSON_OUT_DIR = user_output_dir
     cfg.SMPLIFYX_OUT_DIR = smplifyx_out_dir
@@ -429,22 +524,30 @@ def main():
     else:
         images = user_input_dir
     images = images.resolve()
-
     assert images.exists() and images.is_dir(), f"Image folder not found: {images}"
+
+    # EXIF 정규화
+    if args.exif_mode == "off":
+        normalized_images = images
+        print("[EXIF] Skipped (mode=off). Using original images.")
+    else:
+        normalized_images = normalize_images_with_exif(images, mode=args.exif_mode)
+        print(f"[EXIF] Using image folder: {normalized_images}")
 
     # Ensure output dirs
     ensure_dir(cfg.PYMAF_OUT_DIR)
     ensure_dir(cfg.JSON_OUT_DIR)
     ensure_dir(cfg.SMPLIFYX_OUT_DIR)
 
-    # 1) PyMAF‑X inference
+    # 1) PyMAF-X inference
     if not args.skip_pymaf:
-        run_pymaf_on_folder(cfg, image_folder=images, force=args.force_pymaf)
+        run_pymaf_on_folder(cfg, image_folder=normalized_images, force=args.force_pymaf)
     else:
         print("[Pipeline] Skipping PyMAF run; assuming PKLs exist.")
 
-    # 2) Collect images
-    img_list = sorted([p for p in images.iterdir() if p.is_file() and p.suffix.lower() in {".jpg",".jpeg",".png",".bmp"}])
+    # 2) Collect images (정규화된 폴더 기준)
+    img_list = sorted([p for p in normalized_images.iterdir()
+                       if p.is_file() and p.suffix.lower() in IMG_EXTS])
     print(f"[Pipeline] Found {len(img_list)} images.")
 
     for img in img_list:
@@ -457,21 +560,21 @@ def main():
         raw = load_pymaf_pkl(pkl_path)
         extracted = extract_pymaf_fields(raw)
 
-        # 2‑a) 초기 통합 JSON (측정 없이)
+        # 2-a) 초기 통합 JSON (측정·UMA 없이)
         json_path = cfg.JSON_OUT_DIR / f"{img.stem}.json"
         write_unified_json(json_path, img, extracted, measurements=None)
-        print(f"[JSON] Wrote {json_path} (without measurements)")
+        print(f"[JSON] Wrote {json_path} (without measurements/UMA)")
 
-        # 2‑b) Keypoints JSON (17→25 패딩)
+        # 2-b) Keypoints JSON (17→25 패딩)
         joints2d = extracted.get("pymaf", {}).get("joints2d", [])
         kp_path = cfg.JSON_OUT_DIR / f"{img.stem}_keypoints.json"
         if joints2d:
             write_openpose_like(kp_path, joints2d)
         else:
             kp_path = None
-            print("[SMPLify‑X] No 2D joints found in PyMAF output; refinement may skip.")
+            print("[SMPLify-X] No 2D joints found in PyMAF output; refinement may skip.")
 
-        # 3) (opt) SMPLify‑X refine → JSON에 우선 반영(측정은 아직 X)
+        # 3) (opt) SMPLify-X refine → JSON에 우선 반영(측정은 아직 X)
         refined = None
         if not args.no_smplifyx and kp_path and kp_path.exists():
             out_dir = cfg.SMPLIFYX_OUT_DIR
@@ -479,32 +582,50 @@ def main():
             refined = read_smplifyx_result(out_dir, img)
             if refined:
                 write_unified_json(json_path, img, extracted, measurements=None, smplifyx_refined=refined)
-                print(f"[JSON] Updated with SMPLify-X refinement (no measurements yet): {json_path}")
+                print(f"[JSON] Updated with SMPLify-X refinement (no measurements/UMA yet): {json_path}")
             else:
-                print("[SMPLify‑X] No result; continuing without refinement.")
+                print("[SMPLify-X] No result; continuing without refinement.")
         else:
-            print("[Pipeline] SMPLify‑X disabled or keypoints missing.")
+            print("[Pipeline] SMPLify-X disabled or keypoints missing.")
 
-        # 4) (마지막) measure_body 실행 (refined betas 우선)
+        # 4) (마지막) measure_body 실행 (refined betas 우선) → UMA 계산/저장
         measurements = compute_measurements_from_sources(cfg, extracted, refined, args.target_height_cm)
-        meas_path = cfg.JSON_OUT_DIR / f"{img.stem}_measurements.json"
+
         if isinstance(measurements, dict):
+            # UMA 계산 (measure_body는 UMA를 넣지 않으므로 여기서 계산)
+            uma = compute_uma_from_measurements(cfg, measurements) or {}
+
+            # 분리 저장: metrics(원시 수치) / uma
+            metrics = {k: v for k, v in measurements.items() if not str(k).startswith("uma_")}
+
+            meas_path = cfg.JSON_OUT_DIR / f"{img.stem}_measurements.json"
             with open(meas_path, "w", encoding="utf-8") as f:
-                json.dump(measurements, f, ensure_ascii=False, indent=2)
+                json.dump(metrics, f, ensure_ascii=False, indent=2)
+
+            uma_path = cfg.JSON_OUT_DIR / f"{img.stem}_uma.json"
+            with open(uma_path, "w", encoding="utf-8") as f:
+                json.dump(uma, f, ensure_ascii=False, indent=2)
+
             print("[Measurements]")
             for k in [
-                "height_cm", "shoulder_width_cm", "chest_circumference_cm",
-                "waist_circumference_cm", "waist_FB_cm", "waist_LR_cm",  
-                "hip_circumference_cm", "arm_length_cm", "leg_length_cm",
+                "height_cm", "shoulder_width_cm",
+                "waist_FB_cm", "waist_LR_cm", "fore_arm_length_cm",
+                "arm_length_cm", "leg_length_cm",
             ]:
-                if k in measurements:
-                    print(f"  - {k}: {measurements[k]}")
+                if k in metrics:
+                    print(f"  - {k}: {metrics[k]}")
+
+            if uma:
+                print("[UMA]")
+                for k, v in uma.items():
+                    print(f"  - {k}: {v}")
+
+            # 5) 최종 통합 JSON (측정 + 정제 파라미터 + UMA)
+            write_unified_json(json_path, img, extracted,
+                               measurements=metrics, smplifyx_refined=refined, uma=uma)
+            print(f"[JSON] Finalized {json_path}")
         else:
             print("[Measurements] unavailable")
-
-        # 5) 최종 통합 JSON (측정 + 정제 파라미터 반영)
-        write_unified_json(json_path, img, extracted, measurements=measurements, smplifyx_refined=refined)
-        print(f"[JSON] Finalized {json_path}")
 
     print("🎉 Done.")
 

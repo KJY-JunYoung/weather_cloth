@@ -3,6 +3,7 @@ import torch
 from smplx import SMPLX
 from typing import Dict
 from .utils_geometry import slice_circumference, slice_width_x, slice_width_z
+from .uma_converter import uma_from_measurements
 
 def load_pkl_safe(path):
     """pkl/joblib 파일 안전하게 로드"""
@@ -94,22 +95,25 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
     hip_y = joints_t[1, 1] - 0.02
     tol = 0.01
 
-    chest_circumference_cm = slice_circumference(vertices_t, chest_y, tol)
-    waist_circumference_cm = slice_circumference(vertices_t, waist_y, tol)
     waist_FB_cm = slice_width_z(vertices_t, waist_y, tol=tol)
     waist_LR_cm = slice_width_x(vertices_t, waist_y, tol=tol)
-    hip_circumference_cm = slice_circumference(vertices_t, hip_y, tol)
 
     # Arm Length
     left_arm_len = (
-        np.linalg.norm(joints_t[16] - joints_t[18]) +
-        np.linalg.norm(joints_t[18] - joints_t[20])
+        np.linalg.norm(joints_t[16] - joints_t[18])
     ) * 100
     right_arm_len = (
-        np.linalg.norm(joints_t[17] - joints_t[19]) +
-        np.linalg.norm(joints_t[19] - joints_t[21])
+        np.linalg.norm(joints_t[17] - joints_t[19])
     ) * 100
     arm_length_cm = (left_arm_len + right_arm_len) / 2
+
+    left_fore_arm_len = (
+        np.linalg.norm(joints_t[18] - joints_t[20])
+    ) * 100
+    right_fore_arm_len = (
+        np.linalg.norm(joints_t[19] - joints_t[21])
+    ) * 100
+    fore_arm_length_cm = (left_fore_arm_len + right_fore_arm_len) / 2
 
     # Leg Length
     left_leg_len = (
@@ -127,11 +131,9 @@ def measure_full_body_from_params(params: Dict, smplx_model_path: str, gender: s
     measurements = {
         "height_cm": height_cm,
         "shoulder_width_cm": shoulder_width_cm,
-        "chest_circumference_cm": chest_circumference_cm,
-        "waist_circumference_cm": waist_circumference_cm,
         "waist_FB_cm" : waist_FB_cm,
         "waist_LR_cm" : waist_LR_cm,
-        "hip_circumference_cm": hip_circumference_cm,
+        "fore_arm_length_cm": fore_arm_length_cm,
         "arm_length_cm": arm_length_cm,
         "leg_length_cm": leg_length_cm
     }
