@@ -12,8 +12,14 @@ require('dotenv').config();
 
 // ========= ENV =========
 const REDIS_URL = process.env.REDIS_URL || 'redis://redis:6379';
-const CLOTH_AI_BASE = 'http://15.165.129.131'; // FastAPI 베이스
+const CLOTH_AI_BASE = process.env.CLOTH_AI_BASE || 'http://15.165.129.131'; // FastAPI 베이스
 const CATEGORY_MAP = { top: 'blouse', bottom: 'trousers' }; // 웹→AI 매핑
+
+// ✅ Cloth2Tex URL (ENV로 오버라이드 가능) + 호환 엔드포인트 둘 다 시도
+const C2T_BASE = (process.env.CLOTH2TEX_URL || `${CLOTH_AI_BASE}:8001`).replace(/\/+$/, '');
+const C2T_ENDPOINTS = [`${C2T_BASE}/api/cloth2tex`, `${C2T_BASE}/cloth2tex`];
+console.log('[C2T_BASE]', C2T_BASE);
+console.log('[C2T_ENDPOINTS]', C2T_ENDPOINTS);
 
 // ========= Redis =========
 const redisConnection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
@@ -28,7 +34,9 @@ const assertPaths = (...p) => {
 
 const validateKeys = (obj, keys, ctx = 'response') => {
   for (const k of keys) {
-    if (!obj?.[k]) throw new Error(`[${ctx}] 필드 누락: ${k}`);
+    if (!obj || obj[k] === undefined || obj[k] === null || obj[k] === '') {
+      throw new Error(`[${ctx}] 필드 누락: ${k}`);
+    }
   }
 };
 
@@ -131,30 +139,63 @@ const clothProcessingWorker = new Worker(
       });
 
       const {
-        front_image_path,
-        back_image_path,
+        // 512 레터박스 이미지
+        front_resized_path,
+        back_resized_path,
+        // 512 마스크 (GRAY)
+        front_mask_path,
+        back_mask_path,
+        // 512 세그 RGBA (정제 알파)
+        front_seg_path,
+        back_seg_path,
+        // 512 좌표 JSON
         front_json_path,
         back_json_path,
-        front_vis_path,
-        back_vis_path,
       } = predictResp.data || {};
 
-      // 2) 응답 필수 키 검증
+      // 2) 응답 필수 키 검증 (세그/마스크/JSON/리사이즈 모두)
       validateKeys(
         {
-          front_image_path,
-          back_image_path,
+          front_resized_path,
+          back_resized_path,
           front_json_path,
           back_json_path,
+          front_mask_path,
+          back_mask_path,
+          front_seg_path,
+          back_seg_path,
         },
-        ['front_image_path', 'back_image_path', 'front_json_path', 'back_json_path'],
+        [
+          'front_resized_path',
+          'back_resized_path',
+          'front_json_path',
+          'back_json_path',
+          'front_mask_path',
+          'back_mask_path',
+          'front_seg_path',
+          'back_seg_path',
+        ],
         'predict'
       );
 
       await job.updateProgress(40);
 
+      // 요약 로그
+      const pick = d => ({
+        front_resized_path: d.front_resized_path,
+        back_resized_path:  d.back_resized_path,
+        front_mask_path:    d.front_mask_path,
+        back_mask_path:     d.back_mask_path,
+        front_seg_path:     d.front_seg_path,
+        back_seg_path:      d.back_seg_path,
+        front_json_path:    d.front_json_path,
+        back_json_path:     d.back_json_path,
+        subCategory,
+        aiCategory,
+      });
+      console.log('[predict] outputs:', JSON.stringify(pick(predictResp.data), null, 2));
+
       // 3) ✅ 바로 Cloth2Tex 큐로 넘김 (DB 저장 X; 최종에서 upsert)
-      //    중복 방지를 위해 jobId=clothId 사용
       await cloth2texQueue.add(
         'cloth2tex',
         {
@@ -169,18 +210,20 @@ const clothProcessingWorker = new Worker(
           fileNameFront,
           fileNameBack,
 
-          // Cloth2Tex 입력
-          frontImage: front_image_path,
-          backImage: back_image_path,
+          // Cloth2Tex 입력 (모두 512 기준)
+          frontImage:    front_resized_path, // ← resized를 image로 사용
+          backImage:     back_resized_path,
           frontKptsJson: front_json_path,
-          backKptsJson: back_json_path,
+          backKptsJson:  back_json_path,
+          frontMask:     front_mask_path,
+          backMask:      back_mask_path,
 
-          // 필요시 참고용
-          front_vis_path,
-          back_vis_path,
+          // ✅ 정제된 세그 RGBA 경로(항상 전송)
+          frontSeg:      front_seg_path,
+          backSeg:       back_seg_path,
         },
         {
-          jobId: String(clothId), // ✅ 같은 clothId 중복 투입 방지
+          jobId: String(clothId), // 중복 방지
           removeOnComplete: true,
           removeOnFail: false,
           attempts: 3,
@@ -194,8 +237,6 @@ const clothProcessingWorker = new Worker(
         status: 'landmark_done',
         front_json_path,
         back_json_path,
-        front_vis_path,
-        back_vis_path,
       };
     } catch (err) {
       const msg = err?.response?.data ? JSON.stringify(err.response.data) : err.message;
@@ -229,28 +270,63 @@ const cloth2texWorker = new Worker(
       backImage,
       frontKptsJson,
       backKptsJson,
-      front_vis_path,
-      back_vis_path,
+      // ✅ 마스크
+      frontMask,
+      backMask,
+      // ✅ 세그
+      frontSeg,
+      backSeg,
     } = job.data;
 
     try {
       await job.updateProgress(65);
 
-      // 1) Cloth2Tex 실행
+      // 1) Cloth2Tex 실행 (경로 문자열을 form-data로 전송)
       const form = new FormData();
       form.append('user_id', String(userId));
       form.append('cloth_id', String(clothId));
       form.append('subCategory', subCategory);
-      form.append('front_image_path', frontImage);
-      form.append('back_image_path', backImage);
-      form.append('front_json_path', frontKptsJson);
-      form.append('back_json_path', backKptsJson);
 
-      const resp = await axios.post(`${CLOTH_AI_BASE}:8001/api/cloth2tex`, form, {
-        headers: form.getHeaders(),
-        maxBodyLength: Infinity,
-        timeout: 30 * 60 * 1000, // 30분
-      });
+      // 새 스키마 키 이름 (cloth2tex FastAPI와 일치)
+      form.append('front_resized_path', frontImage);
+      form.append('back_resized_path',  backImage);
+      form.append('front_json_path',    frontKptsJson);
+      form.append('back_json_path',     backKptsJson);
+      form.append('front_mask_path',    frontMask);
+      form.append('back_mask_path',     backMask);
+      form.append('front_seg_path',     frontSeg);
+      form.append('back_seg_path',      backSeg);
+
+      // (디버그) 전송 요약 로그
+      console.log('[Cloth2Tex] enqueue payload:', JSON.stringify({
+        userId, clothId, subCategory,
+        front_resized_path: frontImage,
+        back_resized_path:  backImage,
+        front_json_path:    frontKptsJson,
+        back_json_path:     backKptsJson,
+        front_mask_path:    frontMask,
+        back_mask_path:     backMask,
+        front_seg_path:     frontSeg,
+        back_seg_path:      backSeg,
+      }, null, 2));
+
+      let resp;
+      let lastErr;
+      for (const url of C2T_ENDPOINTS) {
+        try {
+          console.log('[Cloth2Tex] POST', url);
+          resp = await axios.post(url, form, {
+            headers: form.getHeaders(),
+            maxBodyLength: Infinity,
+            timeout: 30 * 60 * 1000, // 30분
+          });
+          break; // 성공 시 루프 탈출
+        } catch (e) {
+          lastErr = e;
+          console.warn(`[Cloth2Tex] 실패 @ ${url}:`, e?.response?.status || e.message);
+        }
+      }
+      if (!resp) throw lastErr || new Error('Cloth2Tex 호출 실패');
 
       const { textureUrl } = resp.data || {};
       if (!textureUrl) throw new Error('cloth2tex 응답에 textureUrl 누락');
@@ -270,10 +346,6 @@ const cloth2texWorker = new Worker(
             imageUrlFront: `/images/clothes/${fileNameFront}`,
             imageUrlBack: `/images/clothes/${fileNameBack}`,
             modelUrl: textureUrl,
-            // frontVisPath: front_vis_path,
-            // backVisPath: back_vis_path,
-            // pipelineStatus: 'done',
-            // texturingFinishedAt: new Date(),
           },
           $setOnInsert: { createdAt: new Date() },
         },
